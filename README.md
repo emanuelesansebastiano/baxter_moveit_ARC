@@ -1,3 +1,6 @@
-# baxter_moveit_ARC
+# moveit_side_pkg
 
-something
+This package is based on Moveit!
+Author: Emanuele Sansebastiano
+
+
