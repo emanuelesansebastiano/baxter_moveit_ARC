@@ -18,9 +18,9 @@
 #include <moveit_msgs/OrientationConstraint.h>
 
 #include <moveit/move_group_interface/move_group.h>
-/*
 #include <moveit/planning_scene_interface/planning_scene_interface.h>
 
+/*
 #include <moveit_msgs/DisplayRobotState.h>
 #include <moveit_msgs/DisplayTrajectory.h>
 
@@ -54,7 +54,7 @@ namespace moveit_side_functions
 
   //brief: Function to make a Pose message from quaternions
   geometry_msgs::Pose makePose(geometry_msgs::Quaternion orientation, geometry_msgs::Vector3 XYZ_location);
-  //brief: Function to make a Pose message from eulerian angles
+  //brief: Function to make a Pose message from eulerian angles in degree
   geometry_msgs::Pose makePose(geometry_msgs::Vector3 RPY_orientation, geometry_msgs::Vector3 XYZ_location);
 
   //brief: Convert a Pose data to a PoseStamped data
@@ -71,10 +71,11 @@ namespace moveit_side_functions
   //brief: This function return the sum of the absolute difference of every term of two quaternions
   double Quat_diff(geometry_msgs::Quaternion a, geometry_msgs::Quaternion b);
 
+
 // End namespace "moveit_side_functions"
 }
 
-namespace moveit_basics_bax
+namespace moveit_basics_functions
 {
 //brief: Predefined vertical orientation (180.0; 0.0; 0.0)
   geometry_msgs::Vector3 vertical_orientation_x();
@@ -87,17 +88,43 @@ namespace moveit_basics_bax
   //       This function choose the closest final orientation among the two possible verticals
   geometry_msgs::Pose up_position(geometry_msgs::Pose ee_curr_pos, double curr_z = 0.0, double distance = 0.2);
 
+  //Comment: Other constraints could be set like 'PositionConstraints', but they are useless for this project.
+  //         Check moveit_msgs/msg/Constraints.msg file to know more about them.
   //brief: Function to define a orientation constraint parameter from quaternions
+  //       there is a function to know which is the planning frame "group.getPlanningFrame()" default = "/world"
   moveit_msgs::OrientationConstraint orient_constr_definition(geometry_msgs::Quaternion orientation, std::string link_name,
-  		  float toll_x = 0.1, float toll_y = 0.1, float toll_z = 0.1, float weight = 1.0, std::string header_frame_id = "world");
-  //brief: Function to define a orientation constraint parameter from quaternions
-  moveit_msgs::OrientationConstraint orient_constr_definition(geometry_msgs::Vector3 RPY, std::string link_name,
-   		  float toll_x = 0.1, float toll_y = 0.1, float toll_z = 0.1, float weight = 1.0, std::string header_frame_id = "world");
+  		  float toll_x = 0.1, float toll_y = 0.1, float toll_z = 0.1, float weight = 1.0, std::string header_frame_id = "/world");
+  //brief: Function to define a orientation constraint parameter from RPY in degree
+  moveit_msgs::OrientationConstraint orient_constr_definition(geometry_msgs::Vector3 RPY_orientation, std::string link_name,
+   		  float toll_x = 0.1, float toll_y = 0.1, float toll_z = 0.1, float weight = 1.0, std::string header_frame_id = "/world");
 
   //brief: Function to return the list of the available planners
   std::vector<std::string> getOmplPlannerList(void);
 
-// End namespace "moveit_basics_bax"
+  //brief: Function to list all the possible basic solid shapes
+  std::vector<std::string> get_possible_solid_shapes(void);
+
+  //brief: Function to generate a collision object (SPHERE)
+  moveit_msgs::CollisionObject collision_obj_generator(std::string id_collision_obj,
+    		  geometry_msgs::Vector3 position, double radius, std::string header_frame_id = "/world", std::string solid_type = "SPHERE");
+
+  //brief: Function to generate a collision object (BOX) -- Using RPY in degree
+  //       there is a function to know which is the planning frame "group.getPlanningFrame()" default = "/world"
+  moveit_msgs::CollisionObject collision_obj_generator(std::string id_collision_obj, geometry_msgs::Vector3 orientation, geometry_msgs::Vector3 position,
+		  geometry_msgs::Vector3 dimension, std::string header_frame_id = "/world" , std::string solid_type = "BOX");
+  //brief: Function to generate a collision object (BOX) -- Using Quaternions
+  moveit_msgs::CollisionObject collision_obj_generator(std::string id_collision_obj, geometry_msgs::Quaternion quat, geometry_msgs::Vector3 position,
+		  geometry_msgs::Vector3 dimension, std::string header_frame_id = "/world" , std::string solid_type = "BOX");
+
+  //brief: Function to generate a collision object (Cylinder or Cone) -- Using RPY in degree
+  moveit_msgs::CollisionObject collision_obj_generator(std::string id_collision_obj, geometry_msgs::Vector3 orientation, geometry_msgs::Vector3 position,
+		  double height, double radius, std::string header_frame_id = "/world" , std::string solid_type = "CYLINDER");
+  //brief: Function to generate a collision object (Cylinder or Cone) -- Using Quaternions
+  moveit_msgs::CollisionObject collision_obj_generator(std::string id_collision_obj, geometry_msgs::Quaternion quat, geometry_msgs::Vector3 position,
+		  double height, double radius, std::string header_frame_id = "/world" , std::string solid_type = "CYLINDER");
+
+
+// End namespace "moveit_basics_functions"
 }
 
 namespace obj_functions
@@ -116,8 +143,36 @@ namespace obj_functions
   //brief: Function to get the joint names
   std::vector<std::string> getJointNames(moveit::planning_interface::MoveGroup& obj);
 
+  //brief: Function to get the current joint values of a specific arm or both, the default is all the joints values
+  std::vector<double> getCurrentArmJointValues(moveit::planning_interface::MoveGroup& obj, std::string r_l_single = "");
+
+  //brief: Function to get the current Pose of a specific gripper, the default gripper is the right one
+  geometry_msgs::Pose getCurrentGripperPose(moveit::planning_interface::MoveGroup& obj, std::string left_right = "");
+
+  //brief: Function to get the current orientation in quaternions of a specific gripper, the default gripper is the right one
+  geometry_msgs::Quaternion getCurrentGripperQuaternion(moveit::planning_interface::MoveGroup& obj, std::string left_right);
+
+  //brief: Function to get the current orientation in RPY of a specific gripper, the default gripper is the right one
+  geometry_msgs::Vector3 getCurrentGripperRPY(moveit::planning_interface::MoveGroup& obj, std::string left_right);
+
+  //brief: Function to define the Work Space Box
+  //       This function has to be used when the planning frame is the world ("/world").
+  bool setWorkSpaceBox(moveit::planning_interface::MoveGroup& obj, geometry_msgs::Vector3 min_XYZ, geometry_msgs::Vector3 max_XYZ);
+
   //brief: Function to change the planner ID among the ones available
   bool setPlanner(moveit::planning_interface::MoveGroup& obj, std::string new_planner);
+
+  //brief: Function to change the planning time
+  bool setPlanningTime(moveit::planning_interface::MoveGroup& obj, double time);
+
+  //brief: Function to set the number of planning attempts
+  bool setPlanningAttempts(moveit::planning_interface::MoveGroup& obj, unsigned int attempts);
+
+  //brief: Function to set the max velocity factor in (0.0 ; 1.0]
+  bool setMaxVelocityFactor(moveit::planning_interface::MoveGroup& obj, double val);
+
+  //brief: Function to set the max acceleration factor in (0.0 ; 1.0]
+  bool setMaxAccelerationFactor(moveit::planning_interface::MoveGroup& obj, double val);
 
   //brief: Function to set the pose of the end-effector
   //       !Do not forget there is a function to generate a Pose msg (moveit_side_functions::makePose)
@@ -125,16 +180,36 @@ namespace obj_functions
 		  geometry_msgs::Pose pose, std::string left_right = "");
 
   //brief: Function to impose the joint value target directly
-  //       Change "left_right_both" just in case both arms are controlled, but you want to move just one of them
+  //       Change "r_l_both" just in case both arms are controlled, but you want to move just one of them
   //       Do not forget to cluster the joint position with the function: 'moveit_side_functions::vector_two_cluster'.
   //       The values in the vector must go from the shoulder to the wrist.
   bool setJointValuesTarget(moveit::planning_interface::MoveGroup& obj,
 		  std::vector<double> vector, std::string r_l_single = "");
 
+  //brief: Function to clear all the constraints
+  bool clearConstraints(moveit::planning_interface::MoveGroup& obj);
+
   void move_f(moveit::planning_interface::MoveGroup& obj);
 
 
+
   ////// ENVIRONMENT FUNCTIONS //////
+  // The object must be instantiated in the executable file using:
+  // moveit::planning_interface::PlanningSceneInterface obj_name
+
+  //brief: Function to add an object to the scene
+  bool addObject(moveit::planning_interface::PlanningSceneInterface &interface, moveit_msgs::CollisionObject &coll_obj);
+
+  //brief: Function to remove an object to the scene
+  bool removeObject(moveit::planning_interface::PlanningSceneInterface &interface, moveit_msgs::CollisionObject &coll_obj);
+
+  //brief: Function to attach a specific object to a moveit group
+  //       obj_id = obj_in_the_scene.id
+  bool attachObj2group(moveit::planning_interface::MoveGroup& group, std::string obj_id, double time2wait = 0.6);
+
+  //brief: Function to detach a specific object to a moveit group
+  //       obj_id = obj_in_the_scene.id
+  bool detachObj2group(moveit::planning_interface::MoveGroup& group, std::string obj_id, double time2wait = 0.6);
 
 
 // End namespace "obj_functions"
@@ -155,8 +230,8 @@ namespace obj_functions
  * - getNameTarget
  * - getRobotName
  * - getNodeHandle
- * - getJointName
- * - getLinkName
+ * - getJointName //
+ * - getLinkName //
  * - getActiveJoints
  * - getJoints
  * - getDefaultPlannerId
@@ -165,12 +240,11 @@ namespace obj_functions
  * - getCurrentPose
  * - getCurrentRPY
  *
- * - setPlannerId
- * - setPlanningTime
- * - setNumPlanningAttempts
- * - setMaxVelocityScalingFactor
- * - setMaxAccelerationScalingFactor
- * - setGoal
+ * - setPlannerId //
+ * - setPlanningTime //
+ * - setNumPlanningAttempts //
+ * - setMaxVelocityScalingFactor //
+ * - setMaxAccelerationScalingFactor //
  * - setWorkSpace
  * - setStartState
  * - setStartStateToCurrentState
@@ -181,7 +255,7 @@ namespace obj_functions
  * - setRPYTarget
  * - setOrientationTarget
  * - setPoseTarget
- * - setPathConstraints
+ * - setPathConstraints //
  * - setGoalPositionTolerance
  * - setGoalOrientationTolerance
  *
