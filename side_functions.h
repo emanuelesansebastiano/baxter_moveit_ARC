@@ -28,8 +28,32 @@
 #include <moveit_msgs/CollisionObject.h>
 */
 
+// Common define values
+#define	std_time					0.05
+#define	stdAttempts4booleanFunc		5
+//The following define structures could change according to the robot
+#define	generic_str					""
+//Baxter default values
+//DO NOT MODIFY THESE VALUES, except if it is strickly necessary!
+#define	std_head_frame				"/world"
+#define left_arm_group_name			"left_arm"
+#define right_arm_group_name		"right_arm"
+#define both_arms_group_name		"both_arms"
+#define baxter_def_joint_toll		0.0001		//[rad]
+#define baxter_def_orient_toll		0.001		//[rad]
+#define baxter_def_pos_toll 		0.0001		//[rad]
+#define baxter_attempts				1
+#define baxter_max_factor			1.0
+
+
 namespace moveit_side_functions
 {
+  //brief: Standard attempts for boolean function before exiting (false)
+  int _get_attempt_val(int val = stdAttempts4booleanFunc);
+
+  //brief: Standard sleep time - default value [seconds]
+  void standardSleep(double sleep_time = std_time);
+
   //brief: Convert radiant to degree
   double rad2deg(double rad);
 
@@ -42,6 +66,9 @@ namespace moveit_side_functions
   //brief: Round a value to the closest integer
   //       examples: 2.4 --> 2; 2.7 --> 3; 2.0 --> 2; 2.5 --> 3;
   int round_f(double val);
+
+  //brief: Function to shift decimal values and cut off the non-integer part
+  int decimal_shift(double val2shift, int decimal_considered);
 
   //brief: Function to cluster to vector in one vector
   std::vector<double> vector_two_cluster(std::vector<double> left, std::vector<double> right);
@@ -71,6 +98,10 @@ namespace moveit_side_functions
   //brief: This function return the sum of the absolute difference of every term of two quaternions
   double Quat_diff(geometry_msgs::Quaternion a, geometry_msgs::Quaternion b);
 
+  //brief: This function compare two Pose
+  //       'decimal_considered' is the number of decimals you want to consider - negative values mean 'all the available values'
+  bool PoseEquivalence(geometry_msgs::Pose A, geometry_msgs::Pose B, int decimal_considered = -1);
+
 
 // End namespace "moveit_side_functions"
 }
@@ -93,10 +124,10 @@ namespace moveit_basics_functions
   //brief: Function to define a orientation constraint parameter from quaternions
   //       there is a function to know which is the planning frame "group.getPlanningFrame()" default = "/world"
   moveit_msgs::OrientationConstraint orient_constr_definition(geometry_msgs::Quaternion orientation, std::string link_name,
-  		  float toll_x = 0.1, float toll_y = 0.1, float toll_z = 0.1, float weight = 1.0, std::string header_frame_id = "/world");
+  		  float toll_x = 0.1, float toll_y = 0.1, float toll_z = 0.1, float weight = 1.0, std::string header_frame_id = std_head_frame);
   //brief: Function to define a orientation constraint parameter from RPY in degree
   moveit_msgs::OrientationConstraint orient_constr_definition(geometry_msgs::Vector3 RPY_orientation, std::string link_name,
-   		  float toll_x = 0.1, float toll_y = 0.1, float toll_z = 0.1, float weight = 1.0, std::string header_frame_id = "/world");
+   		  float toll_x = 0.1, float toll_y = 0.1, float toll_z = 0.1, float weight = 1.0, std::string header_frame_id = std_head_frame);
 
   //brief: Function to return the list of the available planners
   std::vector<std::string> getOmplPlannerList(void);
@@ -106,22 +137,22 @@ namespace moveit_basics_functions
 
   //brief: Function to generate a collision object (SPHERE)
   moveit_msgs::CollisionObject collision_obj_generator(std::string id_collision_obj,
-    		  geometry_msgs::Vector3 position, double radius, std::string header_frame_id = "/world", std::string solid_type = "SPHERE");
+    		  geometry_msgs::Vector3 position, double radius, std::string header_frame_id = std_head_frame, std::string solid_type = "SPHERE");
 
   //brief: Function to generate a collision object (BOX) -- Using RPY in degree
   //       there is a function to know which is the planning frame "group.getPlanningFrame()" default = "/world"
   moveit_msgs::CollisionObject collision_obj_generator(std::string id_collision_obj, geometry_msgs::Vector3 orientation, geometry_msgs::Vector3 position,
-		  geometry_msgs::Vector3 dimension, std::string header_frame_id = "/world" , std::string solid_type = "BOX");
+		  geometry_msgs::Vector3 dimension, std::string header_frame_id = std_head_frame , std::string solid_type = "BOX");
   //brief: Function to generate a collision object (BOX) -- Using Quaternions
   moveit_msgs::CollisionObject collision_obj_generator(std::string id_collision_obj, geometry_msgs::Quaternion quat, geometry_msgs::Vector3 position,
-		  geometry_msgs::Vector3 dimension, std::string header_frame_id = "/world" , std::string solid_type = "BOX");
+		  geometry_msgs::Vector3 dimension, std::string header_frame_id = std_head_frame , std::string solid_type = "BOX");
 
   //brief: Function to generate a collision object (Cylinder or Cone) -- Using RPY in degree
   moveit_msgs::CollisionObject collision_obj_generator(std::string id_collision_obj, geometry_msgs::Vector3 orientation, geometry_msgs::Vector3 position,
-		  double height, double radius, std::string header_frame_id = "/world" , std::string solid_type = "CYLINDER");
+		  double height, double radius, std::string header_frame_id = std_head_frame , std::string solid_type = "CYLINDER");
   //brief: Function to generate a collision object (Cylinder or Cone) -- Using Quaternions
   moveit_msgs::CollisionObject collision_obj_generator(std::string id_collision_obj, geometry_msgs::Quaternion quat, geometry_msgs::Vector3 position,
-		  double height, double radius, std::string header_frame_id = "/world" , std::string solid_type = "CYLINDER");
+		  double height, double radius, std::string header_frame_id = std_head_frame , std::string solid_type = "CYLINDER");
 
 
 // End namespace "moveit_basics_functions"
@@ -144,10 +175,10 @@ namespace obj_functions
   std::vector<std::string> getJointNames(moveit::planning_interface::MoveGroup& obj);
 
   //brief: Function to get the current joint values of a specific arm or both, the default is all the joints values
-  std::vector<double> getCurrentArmJointValues(moveit::planning_interface::MoveGroup& obj, std::string r_l_single = "");
+  std::vector<double> getCurrentArmJointValues(moveit::planning_interface::MoveGroup& obj, std::string r_l_single = generic_str);
 
   //brief: Function to get the current Pose of a specific gripper, the default gripper is the right one
-  geometry_msgs::Pose getCurrentGripperPose(moveit::planning_interface::MoveGroup& obj, std::string left_right = "");
+  geometry_msgs::Pose getCurrentGripperPose(moveit::planning_interface::MoveGroup& obj, std::string left_right = generic_str);
 
   //brief: Function to get the current orientation in quaternions of a specific gripper, the default gripper is the right one
   geometry_msgs::Quaternion getCurrentGripperQuaternion(moveit::planning_interface::MoveGroup& obj, std::string left_right);
@@ -163,28 +194,40 @@ namespace obj_functions
   bool setPlanner(moveit::planning_interface::MoveGroup& obj, std::string new_planner);
 
   //brief: Function to change the planning time
-  bool setPlanningTime(moveit::planning_interface::MoveGroup& obj, double time);
+  bool setPlanningTime(moveit::planning_interface::MoveGroup& obj, double new_time);
 
-  //brief: Function to set the number of planning attempts
-  bool setPlanningAttempts(moveit::planning_interface::MoveGroup& obj, unsigned int attempts);
+  //brief: Function to set the number of planning attempts - default = 1
+  bool setPlanningAttempts(moveit::planning_interface::MoveGroup& obj, unsigned int attempts = baxter_attempts);
 
-  //brief: Function to set the max velocity factor in (0.0 ; 1.0]
-  bool setMaxVelocityFactor(moveit::planning_interface::MoveGroup& obj, double val);
+  //brief: Function to set the max velocity factor in (0.0 ; 1.0] - default = 1.0
+  bool setMaxVelocityFactor(moveit::planning_interface::MoveGroup& obj, double val = baxter_max_factor);
 
-  //brief: Function to set the max acceleration factor in (0.0 ; 1.0]
-  bool setMaxAccelerationFactor(moveit::planning_interface::MoveGroup& obj, double val);
+  //brief: Function to set the max acceleration factor in (0.0 ; 1.0] - default = 1.0
+  bool setMaxAccelerationFactor(moveit::planning_interface::MoveGroup& obj, double val = baxter_max_factor);
 
   //brief: Function to set the pose of the end-effector
   //       !Do not forget there is a function to generate a Pose msg (moveit_side_functions::makePose)
   bool setEePoseTarget(moveit::planning_interface::MoveGroup& obj,
-		  geometry_msgs::Pose pose, std::string left_right = "");
+		  geometry_msgs::Pose pose, std::string left_right = generic_str);
 
   //brief: Function to impose the joint value target directly
   //       Change "r_l_both" just in case both arms are controlled, but you want to move just one of them
   //       Do not forget to cluster the joint position with the function: 'moveit_side_functions::vector_two_cluster'.
   //       The values in the vector must go from the shoulder to the wrist.
   bool setJointValuesTarget(moveit::planning_interface::MoveGroup& obj,
-		  std::vector<double> vector, std::string r_l_single = "");
+		  std::vector<double> vector, std::string r_l_single = generic_str);
+
+  //brief: Function to set the joint tolerance - data given in degree
+  //       If you want to set the default tolerance do not put any tolerance value
+  bool setJointTolerance(moveit::planning_interface::MoveGroup& obj, double toll = moveit_side_functions::rad2deg(baxter_def_joint_toll));
+
+  //brief: Function to set the end-effector goal orientation tolerance - data given in degree
+  //       If you want to set the default tolerance do not put any tolerance value
+  bool setEeOrientationTolerance(moveit::planning_interface::MoveGroup& obj, double toll = moveit_side_functions::rad2deg(baxter_def_orient_toll));
+
+  //brief: Function to set the end-effector goal position tolerance - data given in meter
+  //       If you want to set the default tolerance do not put any tolerance value
+  bool setEePositionTolerance(moveit::planning_interface::MoveGroup& obj, double toll = baxter_def_pos_toll);
 
   //brief: Function to clear all the constraints
   bool clearConstraints(moveit::planning_interface::MoveGroup& obj);
@@ -205,11 +248,11 @@ namespace obj_functions
 
   //brief: Function to attach a specific object to a moveit group
   //       obj_id = obj_in_the_scene.id
-  bool attachObj2group(moveit::planning_interface::MoveGroup& group, std::string obj_id, double time2wait = 0.6);
+  bool attachObj2group(moveit::planning_interface::MoveGroup& group, std::string obj_id, std::string link_id = generic_str, double time2wait = std_time);
 
   //brief: Function to detach a specific object to a moveit group
   //       obj_id = obj_in_the_scene.id
-  bool detachObj2group(moveit::planning_interface::MoveGroup& group, std::string obj_id, double time2wait = 0.6);
+  bool detachObj2group(moveit::planning_interface::MoveGroup& group, std::string obj_id, double time2wait = std_time);
 
 
 // End namespace "obj_functions"
@@ -226,44 +269,45 @@ namespace obj_functions
  * Object Destructor: ~MoveGroup
  *
  * Interesting functions included in this object definition:
- * - getName
- * - getNameTarget
- * - getRobotName
- * - getNodeHandle
+ * - getName **
+ * - getNameTarget **
+ * - getRobotName **
+ * - getNodeHandle **
  * - getJointName //
  * - getLinkName //
- * - getActiveJoints
- * - getJoints
- * - getDefaultPlannerId
- * - getCurrentJointValues
- * - getCurrentState
- * - getCurrentPose
- * - getCurrentRPY
+ * - getActiveJoints **
+ * - getJoints **
+ * - getDefaultPlannerId **
+ * - getCurrentJointValues //
+ * - getCurrentState  **
+ * - getCurrentPose //
+ * - getCurrentRPY //
  *
  * - setPlannerId //
  * - setPlanningTime //
  * - setNumPlanningAttempts //
  * - setMaxVelocityScalingFactor //
  * - setMaxAccelerationScalingFactor //
- * - setWorkSpace
+ * - setWorkSpace //
  * - setStartState
  * - setStartStateToCurrentState
- * - setSupportSurfaceName
+ * - setSupportSurfaceName **
  * - setJointValueTarget
- * - setApproximateJointValueTarget
+ * - setApproximateJointValueTarget **
  * - setPositionTarget
  * - setRPYTarget
  * - setOrientationTarget
- * - setPoseTarget
+ * - setPoseTarget //
  * - setPathConstraints //
- * - setGoalPositionTolerance
- * - setGoalOrientationTolerance
+ * - setGoalJointTolerance //
+ * - setGoalPositionTolerance //
+ * - setGoalOrientationTolerance //
  *
- * - clearPoseTarget
- * - clearPathConstraints
+ * - clearPoseTarget **
+ * - clearPathConstraints //
  *
- * - attachObject
- * - detachObject
+ * - attachObject //
+ * - detachObject //
  *
  * - computeCartesianPath
  * - Move
@@ -272,8 +316,8 @@ namespace obj_functions
  * - asyncMove
  * - asyncExecute
  * - Stop
- * - Pick
- * - Place
+ * - Pick **
+ * - Place **
  *
  */
 

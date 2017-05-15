@@ -6,8 +6,19 @@
 // this pkg
 #include <moveit_side_pkg/side_functions.h>
 
+
 namespace moveit_side_functions
 {
+  int _get_attempt_val(int val)
+  {
+	  return val;
+  }
+
+  void standardSleep(double sleep_time)
+  {
+	  ros::Duration(sleep_time).sleep();
+  }
+
   double rad2deg(double rad)
   {
 	  double pi = boost::math::constants::pi<double>();
@@ -47,6 +58,12 @@ namespace moveit_side_functions
 		  temp =  val -1;
 	  //else {temp is already the integer part of val}
 	  return temp;
+  }
+
+  int decimal_shift(double val2shift, int decimal_considered)
+  {
+	  int val2return = val2shift*std::pow(10,decimal_considered);
+	  return val2return;
   }
 
   std::vector<double> vector_two_cluster(std::vector<double> left, std::vector<double> right)
@@ -163,7 +180,6 @@ namespace moveit_side_functions
 			  // absolute converter
 			  if (msf::abs_f(v[i]) > pi){
 				  v[i] = v[i] - msf::round_f(v[i]/(2*pi))*(2*pi);
-				  //std::cout << msf::round_f(v[i]/(2*pi)) << std::endl;
 			  }
 		  }
 	  }
@@ -202,6 +218,36 @@ namespace moveit_side_functions
 	  }
 
 	  return sum;
+  }
+
+  bool PoseEquivalence(geometry_msgs::Pose A, geometry_msgs::Pose B, int decimal_considered)
+  {
+	  bool equal = false;
+	  if(decimal_considered < 0)
+	  {
+		  if(A.position.x == B.position.x &&
+			 A.position.y == B.position.y &&
+			 A.position.z == B.position.z &&
+			 A.orientation.x == B.orientation.x &&
+			 A.orientation.y == B.orientation.y &&
+			 A.orientation.z == B.orientation.z &&
+			 A.orientation.w == B.orientation.w)
+
+			  equal = true;
+	  }else{
+		  int dc = decimal_considered;
+		  if(moveit_side_functions::decimal_shift(A.position.x, dc) == moveit_side_functions::decimal_shift(B.position.x, dc) &&
+			 moveit_side_functions::decimal_shift(A.position.y, dc) == moveit_side_functions::decimal_shift(B.position.y, dc) &&
+			 moveit_side_functions::decimal_shift(A.position.z, dc) == moveit_side_functions::decimal_shift(B.position.z, dc) &&
+			 moveit_side_functions::decimal_shift(A.orientation.x, dc) == moveit_side_functions::decimal_shift(B.orientation.x, dc) &&
+			 moveit_side_functions::decimal_shift(A.orientation.y, dc) == moveit_side_functions::decimal_shift(B.orientation.y, dc) &&
+			 moveit_side_functions::decimal_shift(A.orientation.z, dc) == moveit_side_functions::decimal_shift(B.orientation.z, dc) &&
+			 moveit_side_functions::decimal_shift(A.orientation.w, dc) == moveit_side_functions::decimal_shift(B.orientation.w, dc))
+
+			  equal = true;
+	  }
+
+	  return equal;
   }
 
 
@@ -473,10 +519,10 @@ namespace obj_functions
   std::vector<std::string> GroupNameAvailable(void)
   {
 	  std::vector<std::string> names;
-	  names[0] = "left_arm";
-	  names[1] = "right_arm";
+	  names[0] = left_arm_group_name;
+	  names[1] = right_arm_group_name;
 	  // the option "both_arms" must be always the last one
-	  names[2] = "both_arms";
+	  names[2] = both_arms_group_name;
 
 	  return names;
   }
@@ -598,7 +644,7 @@ namespace obj_functions
 		  obj.setPlannerId(new_planner);
 		  std::cout << "Done correctly: The new planner for the group " << obj_group << " is " << new_planner << "." << std::endl;
       }else{
-		  std::cout << "Warning: The planner chosen do not exit in OMPL Default. Call the function 'moveit_basics_functions::getOmplPlannerList() to check the planners available." << std::endl;
+		  std::cout << "Warning: The planner chosen do not exit in OMPL Default. Call the function 'moveit_basics_functions::getOmplPlannerList() to check the available planners." << std::endl;
 	      std::cout << "Warning: The planner for the group " << obj_group << " is still the last one successfully set." << std::endl;
      }
 
@@ -606,21 +652,23 @@ namespace obj_functions
   }
 
   //YES effective check
-  bool setPlanningTime(moveit::planning_interface::MoveGroup& obj, double time)
+  bool setPlanningTime(moveit::planning_interface::MoveGroup& obj, double new_time)
   {
 	  bool success = false;
-	  if (time < 0.0){
+	  if (new_time < 0.0){
 		  std::cout << "Warning: The planning time cannot be negative! Previous value is maintained." << std::endl;
 	  }else{
-		  int exit = 0;
-		  while (!success || exit >= 5){
-			  obj.setPlanningTime(time);
-			  ros::Duration(0.02).sleep();
-			  if(obj.getPlanningTime() == time){
+
+		  //effective setting check
+		  int exit_count = 0;
+		  while (!success && exit_count <= moveit_side_functions::_get_attempt_val()){
+			  obj.setPlanningTime(new_time);
+			  moveit_side_functions::standardSleep();
+			  if(obj.getPlanningTime() == new_time){
 				  success = true;
-				  std::cout << "Done correctly: The new planning time of the group " << obj.getName() << " is " << time << "." << std::endl;
+				  std::cout << "Done correctly: The new planning time of the group " << obj.getName() << " is " << new_time << "." << std::endl;
 			  }else{
-				  exit++;
+				  exit_count++;
 			  }
 		  }
 	  }
@@ -660,10 +708,10 @@ namespace obj_functions
 	  }
   }
 
-  //--- effective check
+  //YES effective check
   bool setEePoseTarget(moveit::planning_interface::MoveGroup& obj, geometry_msgs::Pose pose, std::string left_right)
   {
-	  bool success = true;
+	  bool success = false;
 	  std::vector<std::string> pos_groups = obj_functions::GroupNameAvailable();
 	  std::string gripper;
 	  if(obj.getName() == pos_groups[pos_groups.size() -1] && (left_right != "right" || left_right != "left")){
@@ -675,7 +723,20 @@ namespace obj_functions
 	  }else if(obj.getName() != pos_groups[pos_groups.size() -1]){
 		  gripper = obj.getEndEffectorLink();
 	  }
-	  obj.setPoseTarget(pose, gripper);
+
+	  //effective setting check
+	  int exit_count = 0;
+	  while (!success && exit_count <= moveit_side_functions::_get_attempt_val()){
+		  obj.setPoseTarget(pose, gripper);
+	  	  moveit_side_functions::standardSleep();
+	  	  geometry_msgs::Pose goal_pose = moveit_side_functions::PoseStamped2Pose(obj.getPoseTarget(gripper));
+	  	  if(moveit_side_functions::PoseEquivalence(goal_pose, pose)){
+	  		  success = true;
+	  		  std::cout << "Done correctly: The goal pose time of the " << gripper << " of the group " << obj.getName() << " has been set." << std::endl;
+	  	  }else{
+	  		  exit_count++;
+	  	  }
+	  }
 
 	  return success;
   }
@@ -722,6 +783,91 @@ namespace obj_functions
 	  return true;
   }
 
+  //YES effective check
+  bool setJointTolerance(moveit::planning_interface::MoveGroup& obj, double toll)
+  {
+	  bool success = false;
+	  //positive conversion
+	  if(toll < 0.0){
+		  std::cout << "Warning: the tolerance value has been converted to positive one." << std::endl;
+		  toll = moveit_side_functions::abs_f(toll);
+	  }
+	  //degree to radiant conversion
+	  double toll_rad = moveit_side_functions::deg2rad(toll);
+
+	  //effective setting check
+	  int exit_count = 0;
+	  while(!success && exit_count <= moveit_side_functions::_get_attempt_val())
+	  {
+		  obj.setGoalJointTolerance(toll_rad);
+		  moveit_side_functions::standardSleep();
+		  if(obj.getGoalJointTolerance() == toll_rad){
+			  success = true;
+			  std::cout << "Done correctly: The new joint tolerance of the group " << obj.getName() << " is " << toll << " degree." << std::endl;
+		  }else{
+			  exit_count++;
+		  }
+	  }
+
+	  return success;
+  }
+
+  //YES effective check
+  bool setEeOrientationTolerance(moveit::planning_interface::MoveGroup& obj, double toll)
+  {
+	  bool success = false;
+	  //positive conversion
+	  if(toll < 0.0){
+		  std::cout << "Warning: the tolerance value has been converted to positive one." << std::endl;
+		  toll = moveit_side_functions::abs_f(toll);
+	  }
+	  //degree to radiant conversion
+	  double toll_rad = moveit_side_functions::deg2rad(toll);
+
+	  //effective setting check
+	  int exit_count = 0;
+	  while(!success && exit_count <= moveit_side_functions::_get_attempt_val())
+	  {
+		  obj.setGoalOrientationTolerance(toll_rad);
+		  moveit_side_functions::standardSleep();
+		  if(obj.getGoalOrientationTolerance() == toll_rad){
+			  success = true;
+			  std::cout << "Done correctly: The new end-effector orientation tolerance of the group " << obj.getName() << " is " << toll << " degree." << std::endl;
+		  }else{
+			  exit_count++;
+		  }
+	  }
+
+	  return success;
+  }
+
+  //YES effective check
+  bool setEePositionTolerance(moveit::planning_interface::MoveGroup& obj, double toll)
+  {
+	  bool success = false;
+	  //positive conversion
+	  if(toll < 0.0){
+		  std::cout << "Warning: the tolerance value has been converted to positive one." << std::endl;
+		  toll = moveit_side_functions::abs_f(toll);
+	  }
+
+	  //effective setting check
+	  int exit_count = 0;
+	  while(!success && exit_count <= moveit_side_functions::_get_attempt_val())
+	  {
+		  obj.setGoalPositionTolerance(toll);
+		  moveit_side_functions::standardSleep();
+		  if(obj.getGoalPositionTolerance() == toll){
+			  success = true;
+			  std::cout << "Done correctly: The new end-effector position tolerance of the group " << obj.getName() << " is " << toll << " meter." << std::endl;
+		  }else{
+			  exit_count++;
+		  }
+	  }
+
+	  return success;
+  }
+
   //NO effective check
   bool clearConstraints(moveit::planning_interface::MoveGroup& obj)
   {
@@ -757,11 +903,27 @@ namespace obj_functions
 	  return true;
   }
 
-  //NO effective check
-  bool attachObj2group(moveit::planning_interface::MoveGroup& group, std::string obj_id, double time2wait)
+  //NO effective check (partial check on the link name)
+  bool attachObj2group(moveit::planning_interface::MoveGroup& group, std::string obj_id, std::string link_id,  double time2wait)
   {
-	  group.attachObject(obj_id);
-	  ros::Duration(time2wait).sleep();
+	  std::vector<std::string> link_names = obj_functions::getLinkNames(group);
+	  for(int i = 0; i < link_names.size(); i++)
+	  {
+		  if(link_names[i] == link_id){
+			  std::cout << "The object " << obj_id << " has been attached to the link " << link_id << " of the group " << group.getName() << " correctly." << std::endl;
+			  group.attachObject(obj_id, link_id);
+			  break;
+		  }else if(i == link_names.size() -1 && link_names[i] == generic_str){
+			  std::cout << "The object " << obj_id << " has been attached to the default link " << group.getEndEffectorLink() << " of the group " << group.getName() << " correctly." << std::endl;
+			  group.attachObject(obj_id);
+			  break;
+		  }else if(i == link_names.size() -1 && link_names[i] != generic_str){
+			  std::cout << "Error: The object " << obj_id << " has been attached to the default link " << group.getEndEffectorLink() << " of the group " << group.getName() << " because the link " << link_id << " does not exist!" << std::endl;
+			  std::cout << "Call the function 'obj_function::getLinkNames(" << group.getName() << ") to check the available link names." << std::endl;
+			  return false;
+		  }
+	  }
+	  moveit_side_functions::standardSleep(time2wait);
 
 	  return true;
   }
@@ -770,7 +932,7 @@ namespace obj_functions
   bool detachObj2group(moveit::planning_interface::MoveGroup& group, std::string obj_id, double time2wait)
   {
   	  group.detachObject(obj_id);
-  	  ros::Duration(time2wait).sleep();
+	  moveit_side_functions::standardSleep(time2wait);
 
   	  return true;
   }
