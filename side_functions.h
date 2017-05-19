@@ -16,9 +16,12 @@
 
 // Moveit! libraries
 #include <moveit_msgs/OrientationConstraint.h>
-
 #include <moveit/move_group_interface/move_group.h>
 #include <moveit/planning_scene_interface/planning_scene_interface.h>
+
+// Baxter libraries
+#include <baxter_core_msgs/EndpointState.h>
+//#include <baxter_core_msgs/SEAJointState.h>
 
 /*
 #include <moveit_msgs/DisplayRobotState.h>
@@ -28,6 +31,9 @@
 #include <moveit_msgs/CollisionObject.h>
 */
 
+//Macro Concatenation
+#define MAC_SUM(A, B) A # B
+
 // Common define values
 #define	std_time					0.05
 #define	stdAttempts4booleanFunc		5
@@ -35,15 +41,26 @@
 #define	generic_str					""
 //Baxter default values
 //DO NOT MODIFY THESE VALUES, except if it is strickly necessary!
+#define right_def					"right"
+#define left_def					"left"
+#define gripper_def					"_gripper"
 #define	std_head_frame				"/world"
-#define left_arm_group_name			"left_arm"
-#define right_arm_group_name		"right_arm"
+#define arm_group_name				"_arm"
 #define both_arms_group_name		"both_arms"
+//baxter topic defintion
+#define joint_state					"/robot/joint_states"
+#define base_robot_part				"/robot/limb/"
+#define end_point					"/endpoint_state"
+//joint names sorted
+#define joints_name					"_s0" "_s1" "_e0" "_e1" "_w0" "_w1" "_w2"
+#define joints_num					7
+//baxter default values
 #define baxter_def_joint_toll		0.0001		//[rad]
 #define baxter_def_orient_toll		0.001		//[rad]
 #define baxter_def_pos_toll 		0.0001		//[rad]
 #define baxter_attempts				1
 #define baxter_max_factor			1.0
+
 
 
 namespace moveit_side_functions
@@ -79,6 +96,11 @@ namespace moveit_side_functions
   //brief: Make a Quaternion data in just one line
   geometry_msgs::Quaternion makeQuat(double w, double x, double y, double z);
 
+  //brief: Function to convert RPY to quaternion angles
+  //       If RPY has no radiant unit change RPY_rad to false
+  //       If you do not want to arrange the angle in to interval (-pi ; pi] change turn_corr to false
+  geometry_msgs::Quaternion RPY2Quat(geometry_msgs::Vector3 RPY, bool RPY_rad = true, bool turn_corr = true);
+
   //brief: Function to make a Pose message from quaternions
   geometry_msgs::Pose makePose(geometry_msgs::Quaternion orientation, geometry_msgs::Vector3 XYZ_location);
   //brief: Function to make a Pose message from eulerian angles in degree
@@ -90,11 +112,6 @@ namespace moveit_side_functions
   //brief: Convert a PoseStamped data to a Pose data
   geometry_msgs::Pose PoseStamped2Pose( geometry_msgs::PoseStamped old_pose_s);
 
-  //brief: Function to convert RPY to quaternion angles
-  //       If RPY has no radiant unit change RPY_rad to false
-  //       If you do not want to arrange the angle in to interval (-pi ; pi] change turn_corr to false
-  geometry_msgs::Quaternion RPY2Quat(geometry_msgs::Vector3 RPY, bool RPY_rad = true, bool turn_corr = true);
-
   //brief: This function return the sum of the absolute difference of every term of two quaternions
   double Quat_diff(geometry_msgs::Quaternion a, geometry_msgs::Quaternion b);
 
@@ -102,13 +119,15 @@ namespace moveit_side_functions
   //       'decimal_considered' is the number of decimals you want to consider - negative values mean 'all the available values'
   bool PoseEquivalence(geometry_msgs::Pose A, geometry_msgs::Pose B, int decimal_considered = -1);
 
+  //brief: This function checks if a topic exist or not
+  bool CheckTopicExistence(std::string topic2check);
 
 // End namespace "moveit_side_functions"
 }
 
 namespace moveit_basics_functions
 {
-//brief: Predefined vertical orientation (180.0; 0.0; 0.0)
+  //brief: Predefined vertical orientation (180.0; 0.0; 0.0)
   geometry_msgs::Vector3 vertical_orientation_x();
 
   //brief: Predefined vertical orientation (0.0; 180.0; 0.0)
@@ -153,6 +172,25 @@ namespace moveit_basics_functions
   //brief: Function to generate a collision object (Cylinder or Cone) -- Using Quaternions
   moveit_msgs::CollisionObject collision_obj_generator(std::string id_collision_obj, geometry_msgs::Quaternion quat, geometry_msgs::Vector3 position,
 		  double height, double radius, std::string header_frame_id = std_head_frame , std::string solid_type = "CYLINDER");
+
+
+  //brief: Functions to get the Endpoint State, Pose, Twist, Wrench
+  baxter_core_msgs::EndpointState getEndPointStateFromTopic(std::string right_left);
+  geometry_msgs::Pose getEePoseFromTopic(std::string right_left);
+  geometry_msgs::Twist getEeTwistFromTopic(std::string right_left);
+  geometry_msgs::Wrench getEeWrenchFromTopic(std::string right_left);
+
+  //brief: Functions to get the arm joints position, velocity, effort
+  sensor_msgs::JointState getBothArmJointValFromTopic(std::string right_left);
+  //One arm only!
+  std::vector<double> getOneArmJointPositionFromTopic(std::string right_left);
+  std::vector<double> getOneArmJointVelocityFromTopic(std::string right_left);
+  std::vector<double> getOneArmJointEffortFromTopic(std::string right_left);
+  //Both arms (left joints before - right joints after in the vector)
+  std::vector<double> getBothArmJointPositionFromTopic(void);
+  std::vector<double> getBothArmJointVelocityFromTopic(void);
+  std::vector<double> getBothArmJointEffortFromTopic(void);
+
 
 
 // End namespace "moveit_basics_functions"

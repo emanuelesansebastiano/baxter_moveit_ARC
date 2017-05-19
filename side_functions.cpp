@@ -47,14 +47,13 @@ namespace moveit_side_functions
 
   int round_f(double val)
   {
-	  namespace msf = moveit_side_functions;
 	  int temp = (int) val;
 	  double temp1 = val - temp;
 	  // if val is positive
-	  if (msf::abs_f(temp1) >= 0.5 && temp1 >= 0)
+	  if (abs_f(temp1) >= 0.5 && temp1 >= 0)
 		  temp = val +1;
 	  // if val is negative
-	  else if (msf::abs_f(temp1) >= 0.5 && temp1 < 0)
+	  else if (abs_f(temp1) >= 0.5 && temp1 < 0)
 		  temp =  val -1;
 	  //else {temp is already the integer part of val}
 	  return temp;
@@ -71,9 +70,9 @@ namespace moveit_side_functions
 	  int final_size = right.size() + left.size();
 	  std::vector<double> final_vector; final_vector.resize(final_size);
 
-	  for (int i = 0; i < left.size()-1; i++)
+	  for (int i = 0; i < left.size(); i++)
 	  		  final_vector[i] = left[i];
-	  for (int i = 0; i < right.size()-1; i++)
+	  for (int i = 0; i < right.size(); i++)
 	  		  final_vector[i + left.size()] = right[i];
 
 	  return final_vector;
@@ -100,6 +99,59 @@ namespace moveit_side_functions
   	  return quat;
   }
 
+  /* Angles names:
+   * Tilt - Bank - Roll - Psi - around x
+   * Elevation - Attitude - Pitch - Phi - around Y
+   * Azimuth - Heading - Yaw - Theta - around Z
+  */
+  geometry_msgs::Quaternion RPY2Quat(geometry_msgs::Vector3 RPY, bool RPY_rad, bool turn_corr)
+  {
+	  geometry_msgs::Quaternion Quat;
+	  const int arr_len = 3;
+
+	  double v[arr_len] = {0,0,0};
+	  v[0] = RPY.x; v[1] = RPY.y; v[2] = RPY.z;
+
+	  // convert degree to radiant
+	  if (!RPY_rad){
+		  for (int i = 0; i < arr_len; i++)
+		  {
+			  v[i] = deg2rad(v[i]);
+		  }
+	  }
+
+	  // keep the angles values in (-pi ; pi]
+	  if (turn_corr)
+	  {
+		  double pi = boost::math::constants::pi<double>();
+		  for (int i = 0; i < arr_len; i++)
+		  {
+			  if (v[i] == -pi){
+				  v[i] = pi;
+			  }
+			  // absolute converter
+			  if (abs_f(v[i]) > pi){
+				  v[i] = v[i] - round_f(v[i]/(2*pi))*(2*pi);
+			  }
+		  }
+	  }
+
+	  // pre-definition
+	  double c1 = cos(v[2]/2);
+	  double c2 = cos(v[1]/2);
+	  double c3 = cos(v[0]/2);
+	  double s1 = sin(v[2]/2);
+	  double s2 = sin(v[1]/2);
+	  double s3 = sin(v[0]/2);
+
+	  Quat.w = c1*c2*c3 - s1*s2*s3;
+	  Quat.x = s1*s2*c3 + c1*c2*s3;
+	  Quat.y = c1*s2*c3 - s1*c2*s3;
+	  Quat.z = s1*c2*c3 + c1*s2*s3;
+
+	  return Quat;
+  }
+
   geometry_msgs::Pose makePose(geometry_msgs::Quaternion orientation, geometry_msgs::Vector3 XYZ_location)
   {
     geometry_msgs::Pose pose;
@@ -112,7 +164,7 @@ namespace moveit_side_functions
   geometry_msgs::Pose makePose(geometry_msgs::Vector3 RPY_orientation, geometry_msgs::Vector3 XYZ_location)
   {
     geometry_msgs::Pose pose;
-  	pose.orientation = moveit_side_functions::RPY2Quat(RPY_orientation, false);
+  	pose.orientation = RPY2Quat(RPY_orientation, false);
   	pose.position.x = XYZ_location.x; pose.position.y = XYZ_location.y; pose.position.z = XYZ_location.z;
 
   	return pose;
@@ -146,71 +198,16 @@ namespace moveit_side_functions
 	  return new_pose;
   }
 
-  /* Angles names:
-   * Tilt - Bank - Roll - Psi - around x
-   * Elevation - Attitude - Pitch - Phi - around Y
-   * Azimuth - Heading - Yaw - Theta - around Z
-  */
-  geometry_msgs::Quaternion RPY2Quat(geometry_msgs::Vector3 RPY, bool RPY_rad, bool turn_corr)
-  {
-	  namespace msf = moveit_side_functions;
-	  geometry_msgs::Quaternion Quat;
-	  const int arr_len = 3;
-
-	  double v[arr_len] = {0,0,0};
-	  v[0] = RPY.x; v[1] = RPY.y; v[2] = RPY.z;
-
-	  // convert degree to radiant
-	  if (!RPY_rad){
-		  for (int i = 0; i < arr_len; i++)
-		  {
-			  v[i] = msf::deg2rad(v[i]);
-		  }
-	  }
-
-	  // keep the angles values in (-pi ; pi]
-	  if (turn_corr)
-	  {
-		  double pi = boost::math::constants::pi<double>();
-		  for (int i = 0; i < arr_len; i++)
-		  {
-			  if (v[i] == -pi){
-				  v[i] = pi;
-			  }
-			  // absolute converter
-			  if (msf::abs_f(v[i]) > pi){
-				  v[i] = v[i] - msf::round_f(v[i]/(2*pi))*(2*pi);
-			  }
-		  }
-	  }
-
-	  // pre-definition
-	  double c1 = cos(v[2]/2);
-	  double c2 = cos(v[1]/2);
-	  double c3 = cos(v[0]/2);
-	  double s1 = sin(v[2]/2);
-	  double s2 = sin(v[1]/2);
-	  double s3 = sin(v[0]/2);
-
-	  Quat.w = c1*c2*c3 - s1*s2*s3;
-	  Quat.x = s1*s2*c3 + c1*c2*s3;
-	  Quat.y = c1*s2*c3 - s1*c2*s3;
-	  Quat.z = s1*c2*c3 + c1*s2*s3;
-
-	  return Quat;
-  }
-
   double Quat_diff(geometry_msgs::Quaternion a, geometry_msgs::Quaternion b)
   {
-	  namespace msf = moveit_side_functions;
 	  const int val_quat = 4;
 	  double temp[val_quat];
 	  double sum = 0.0;
 
-	  temp[0] = msf::abs_f(a.x - b.x);
-	  temp[1] = msf::abs_f(a.y - b.y);
-	  temp[2] = msf::abs_f(a.z - b.z);
-	  temp[3] = msf::abs_f(a.w - b.w);
+	  temp[0] = abs_f(a.x - b.x);
+	  temp[1] = abs_f(a.y - b.y);
+	  temp[2] = abs_f(a.z - b.z);
+	  temp[3] = abs_f(a.w - b.w);
 
 	  for (int i; i < val_quat; i++)
 	  {
@@ -236,13 +233,13 @@ namespace moveit_side_functions
 			  equal = true;
 	  }else{
 		  int dc = decimal_considered;
-		  if(moveit_side_functions::decimal_shift(A.position.x, dc) == moveit_side_functions::decimal_shift(B.position.x, dc) &&
-			 moveit_side_functions::decimal_shift(A.position.y, dc) == moveit_side_functions::decimal_shift(B.position.y, dc) &&
-			 moveit_side_functions::decimal_shift(A.position.z, dc) == moveit_side_functions::decimal_shift(B.position.z, dc) &&
-			 moveit_side_functions::decimal_shift(A.orientation.x, dc) == moveit_side_functions::decimal_shift(B.orientation.x, dc) &&
-			 moveit_side_functions::decimal_shift(A.orientation.y, dc) == moveit_side_functions::decimal_shift(B.orientation.y, dc) &&
-			 moveit_side_functions::decimal_shift(A.orientation.z, dc) == moveit_side_functions::decimal_shift(B.orientation.z, dc) &&
-			 moveit_side_functions::decimal_shift(A.orientation.w, dc) == moveit_side_functions::decimal_shift(B.orientation.w, dc))
+		  if(decimal_shift(A.position.x, dc) == decimal_shift(B.position.x, dc) &&
+			 decimal_shift(A.position.y, dc) == decimal_shift(B.position.y, dc) &&
+			 decimal_shift(A.position.z, dc) == decimal_shift(B.position.z, dc) &&
+			 decimal_shift(A.orientation.x, dc) == decimal_shift(B.orientation.x, dc) &&
+			 decimal_shift(A.orientation.y, dc) == decimal_shift(B.orientation.y, dc) &&
+			 decimal_shift(A.orientation.z, dc) == decimal_shift(B.orientation.z, dc) &&
+			 decimal_shift(A.orientation.w, dc) == decimal_shift(B.orientation.w, dc))
 
 			  equal = true;
 	  }
@@ -250,6 +247,23 @@ namespace moveit_side_functions
 	  return equal;
   }
 
+  bool CheckTopicExistence(std::string topic2check)
+  {
+	  bool success = false;
+	  //get all topics in the system running
+	  ros::master::V_TopicInfo master_topics;
+	  ros::master::getTopics(master_topics);
+	  for (ros::master::V_TopicInfo::iterator it = master_topics.begin() ; it != master_topics.end(); it++) {
+	      ros::master::TopicInfo& info = *it;
+	      if(info.name == topic2check)
+	      {
+	    	  success = true;
+	    	  break;
+	      }
+	  }
+
+	  return success;
+  }
 
 // End namespace "moveit_side_functions"
 }
@@ -257,6 +271,9 @@ namespace moveit_side_functions
 
 namespace moveit_basics_functions
 {
+  //Global variable for this namespace
+  baxter_core_msgs::EndpointState gl_end_point_state;
+  sensor_msgs::JointState gl_joints_state;
 
   geometry_msgs::Vector3 vertical_orientation_x(void)
   {
@@ -283,8 +300,8 @@ namespace moveit_basics_functions
 
       // ee_target orientation definition
 	  // definition of the two possible final orientation
-	  geometry_msgs::Vector3 RPY_up_x = moveit_basics_functions::vertical_orientation_x();
-	  geometry_msgs::Vector3 RPY_up_y = moveit_basics_functions::vertical_orientation_y();
+	  geometry_msgs::Vector3 RPY_up_x = vertical_orientation_x();
+	  geometry_msgs::Vector3 RPY_up_y = vertical_orientation_y();
 	  RPY_up_x.z = curr_z;
 	  RPY_up_y.z = curr_z;
 	  geometry_msgs::Quaternion Quat_up_x = msf::RPY2Quat(RPY_up_x);
@@ -509,6 +526,176 @@ namespace moveit_basics_functions
     }
 
 
+  //Callback for the end-effector endpoint state (position, twist, wrench) | global variable
+  void callback_Ee(baxter_core_msgs::EndpointState data){
+	  gl_end_point_state = data;}
+
+  baxter_core_msgs::EndpointState getEndPointStateFromTopic(std::string right_left)
+  {
+	  baxter_core_msgs::EndpointState eps2return;
+	  if(right_left != right_def && right_left != left_def){
+		  std::cout << "Warning: insert correctly to which gripper you want to get the current information. ";
+		  std::cout << "Insert '" << right_def << "' or '" << left_def << "', otherwise this function will return an empty message by default." << std::endl;
+	  }else{
+		  ros::NodeHandle nh;
+		  std::string topic_str = base_robot_part + right_left + end_point;
+		  if(moveit_side_functions::CheckTopicExistence(topic_str)){
+			  ros::Subscriber sub = nh.subscribe(topic_str, 1, callback_Ee);
+			  eps2return = gl_end_point_state;
+		  }else{
+			  std::cout << "Warning: the topic '" << topic_str << "' does not exist! Probably you are using another topic definition or the robot is still not publishing. ";
+			  std::cout << "Check how is the topic defined in you robot and change the topic definition in the #define part of the header file." << std::endl;
+			  std::cout << "This function returned an empty message by default." << std::endl;
+		  }
+	  }
+
+	  return eps2return;
+  }
+
+  geometry_msgs::Pose getEePoseFromTopic(std::string right_left)
+  {
+	  baxter_core_msgs::EndpointState eps2return = getEndPointStateFromTopic(right_left);
+	  return eps2return.pose;
+  }
+  geometry_msgs::Twist getEeTwistFromTopic(std::string right_left)
+  {
+  	  baxter_core_msgs::EndpointState eps2return = getEndPointStateFromTopic(right_left);
+  	  return eps2return.twist;
+  }
+  geometry_msgs::Wrench getEeWrenchFromTopic(std::string right_left)
+  {
+  	  baxter_core_msgs::EndpointState eps2return = getEndPointStateFromTopic(right_left);
+  	  return eps2return.wrench;
+  }
+
+  //Callback for the joints state (position, velocity, effort) | global variable
+  void callback_Joint(sensor_msgs::JointState data){
+	  gl_joints_state = data;}
+  sensor_msgs::JointState getBothArmJointValFromTopic(std::string right_left)
+  {
+	  sensor_msgs::JointState joints_val2return;
+	  if(right_left != right_def && right_left != left_def){
+		  std::cout << "Warning: insert correctly from which arm you want to get the current joint values.";
+		  std::cout << "Insert '" << right_def << "' or '" << left_def << "', otherwise this function will return an empty message by default." << std::endl;
+	  }else{
+		  ros::NodeHandle nh;
+		  std::string topic_str = joint_state;
+		  if(moveit_side_functions::CheckTopicExistence(topic_str)){
+			  ros::Subscriber sub = nh.subscribe(topic_str, 1, callback_Joint);
+			  joints_val2return = gl_joints_state;
+		  }else{
+			  std::cout << "Warning: the topic '" << topic_str << "' does not exist! Probably you are using another topic definition or the robot is still not publishing.";
+			  std::cout << "Check how is the topic defined in you robot and change the topic definition in the #define part of the header file." << std::endl;
+			  std::cout << "This function returned an empty message by default." << std::endl;
+		  }
+	  }
+
+	  return joints_val2return;
+  }
+
+  std::vector<double> getOneArmJointPositionFromTopic(std::string right_left)
+  {
+	  std::vector<double> joints_val2return;
+	  joints_val2return.resize(joints_num);
+
+	  sensor_msgs::JointState local_joints_state = getBothArmJointValFromTopic(right_left);
+
+	  //selection of the joint I need, sorting them
+	  std::string temp_str;
+	  for(int i = 0; i < joints_num; i++)
+	  {
+		  temp_str = right_left + joints_name[i];
+		  for(int y = 0; y < local_joints_state.name.size(); i++)
+		  {
+			  if(local_joints_state.name[y] == temp_str){
+				  joints_val2return[i] = local_joints_state.position[y];
+				  break;
+			  }
+		  }
+	  }
+
+	  return joints_val2return;
+  }
+  std::vector<double> getOneArmJointVelocityFromTopic(std::string right_left)
+  {
+	  std::vector<double> joints_val2return;
+	  joints_val2return.resize(joints_num);
+
+	  sensor_msgs::JointState local_joints_state = getBothArmJointValFromTopic(right_left);
+
+	  //selection of the joint I need, sorting them
+	  std::string temp_str;
+	  for(int i = 0; i < joints_num; i++)
+	  {
+		  temp_str = right_left + joints_name[i];
+		  for(int y = 0; y < local_joints_state.name.size(); i++)
+		  {
+			  if(local_joints_state.name[y] == temp_str){
+				  joints_val2return[i] = local_joints_state.velocity[y];
+				  break;
+			  }
+		  }
+	  }
+
+	  return joints_val2return;
+  }
+  std::vector<double> getOneArmJointEffortFromTopic(std::string right_left)
+  {
+	  std::vector<double> joints_val2return;
+	  joints_val2return.resize(joints_num);
+
+	  sensor_msgs::JointState local_joints_state = getBothArmJointValFromTopic(right_left);
+
+	  //selection of the joint I need, sorting them
+	  std::string temp_str;
+	  for(int i = 0; i < joints_num; i++)
+	  {
+		  temp_str = right_left + joints_name[i];
+		  for(int y = 0; y < local_joints_state.name.size(); i++)
+		  {
+			  if(local_joints_state.name[y] == temp_str){
+				  joints_val2return[i] = local_joints_state.effort[y];
+				  break;
+			  }
+		  }
+	  }
+
+	  return joints_val2return;
+  }
+
+  std::vector<double> getBothArmJointPositionFromTopic(void)
+  {
+	  std::vector<double> joints_val2return;
+	  std::vector<double> left_temp = getOneArmJointPositionFromTopic(left_def);
+	  std::vector<double> right_temp = getOneArmJointPositionFromTopic(right_def);
+
+	  joints_val2return = moveit_side_functions::vector_two_cluster(left_temp, right_temp);
+
+	  return joints_val2return;
+  }
+  std::vector<double> getBothArmJointVelocityFromTopic(void)
+  {
+	  std::vector<double> joints_val2return;
+	  std::vector<double> left_temp = getOneArmJointVelocityFromTopic(left_def);
+	  std::vector<double> right_temp = getOneArmJointVelocityFromTopic(right_def);
+
+	  joints_val2return = moveit_side_functions::vector_two_cluster(left_temp, right_temp);
+
+	  return joints_val2return;
+  }
+  std::vector<double> getBothArmJointEffortFromTopic(void)
+  {
+	  std::vector<double> joints_val2return;
+	  std::vector<double> left_temp = getOneArmJointEffortFromTopic(left_def);
+	  std::vector<double> right_temp = getOneArmJointEffortFromTopic(right_def);
+
+	  joints_val2return = moveit_side_functions::vector_two_cluster(left_temp, right_temp);
+
+	  return joints_val2return;
+  }
+
+
+
 // End namespace "moveit_basics_functions"
 }
 
@@ -519,8 +706,8 @@ namespace obj_functions
   std::vector<std::string> GroupNameAvailable(void)
   {
 	  std::vector<std::string> names;
-	  names[0] = left_arm_group_name;
-	  names[1] = right_arm_group_name;
+	  names[0] = MAC_SUM(left_def, arm_group_name);
+	  names[1] = MAC_SUM(left_def, arm_group_name);
 	  // the option "both_arms" must be always the last one
 	  names[2] = both_arms_group_name;
 
@@ -541,12 +728,12 @@ namespace obj_functions
 
   std::vector<double> getCurrentArmJointValues(moveit::planning_interface::MoveGroup& obj, std::string r_l_single)
   {
-	  std::vector<std::string> pos_groups = obj_functions::GroupNameAvailable();
+	  std::vector<std::string> pos_groups = GroupNameAvailable();
 	  std::vector<std::string> joint_names = getJointNames(obj);
 	  std::vector<double> joint_val;
 
 	  //if two arms and I just want to know one of them
-	  if(obj.getName() == pos_groups[pos_groups.size() -1] && (r_l_single == "right" || r_l_single == "left")){
+	  if(obj.getName() == pos_groups[pos_groups.size() -1] && (r_l_single == right_def || r_l_single == left_def)){
 	  	  std::cout << "Even if the group " << obj.getName() << " is using both arms, just the joint values of the " << r_l_single << " arm are returned." << std::endl;
 	  	  std::vector<double> joint_val_temp = obj.getCurrentJointValues();
 	  	  int size1arm = joint_val_temp.size()/2;
@@ -567,15 +754,15 @@ namespace obj_functions
 
   geometry_msgs::Pose getCurrentGripperPose(moveit::planning_interface::MoveGroup& obj, std::string left_right)
   {
-	  std::vector<std::string> pos_groups = obj_functions::GroupNameAvailable();
+	  std::vector<std::string> pos_groups = GroupNameAvailable();
   	  std::string gripper;
-  	  if(obj.getName() == pos_groups[pos_groups.size() -1] && (left_right != "right" || left_right != "left")){
-  		  std::cout << "Warning: insert correctly to which gripper you want to get the current pose. ";
-  		  std::cout << "Insert 'right' or 'left', otherwise this function will not return the right one by default." << std::endl;
-  		  left_right = "right";
-  		  gripper = left_right + "_gripper";
-  	  }else if(obj.getName() == pos_groups[pos_groups.size() -1] && (left_right == "right" || left_right == "left")){
-  		  gripper = left_right + "_gripper";
+  	  if(obj.getName() == pos_groups[pos_groups.size() -1] && (left_right != right_def || left_right != left_def)){
+  		  std::cout << "Warning: insert correctly to which gripper you want to get the current pose.";
+  		  std::cout << "Insert '" << right_def << "' or '" << left_def << "', otherwise this function will not return the right one by default." << std::endl;
+  		  left_right = right_def;
+  		  gripper = left_right + gripper_def;
+  	  }else if(obj.getName() == pos_groups[pos_groups.size() -1] && (left_right == right_def || left_right == left_def)){
+  		  gripper = left_right + gripper_def;
   	  }else if(obj.getName() != pos_groups[pos_groups.size() -1]){
   		  gripper = obj.getEndEffectorLink();
   	  }
@@ -587,22 +774,22 @@ namespace obj_functions
 
   geometry_msgs::Quaternion getCurrentGripperQuaternion(moveit::planning_interface::MoveGroup& obj, std::string left_right)
   {
-	  geometry_msgs::Pose temp_pose = obj_functions::getCurrentGripperPose(obj, left_right);
+	  geometry_msgs::Pose temp_pose = getCurrentGripperPose(obj, left_right);
 	  geometry_msgs::Quaternion quat2return = temp_pose.orientation;
 	  return quat2return;
   }
 
   geometry_msgs::Vector3 getCurrentGripperRPY(moveit::planning_interface::MoveGroup& obj, std::string left_right)
     {
-  	  std::vector<std::string> pos_groups = obj_functions::GroupNameAvailable();
+  	  std::vector<std::string> pos_groups = GroupNameAvailable();
     	  std::string gripper;
-    	  if(obj.getName() == pos_groups[pos_groups.size() -1] && (left_right != "right" || left_right != "left")){
+    	  if(obj.getName() == pos_groups[pos_groups.size() -1] && (left_right != right_def || left_right != left_def)){
     		  std::cout << "Warning: insert correctly to which gripper you want to get the current pose. ";
-    		  std::cout << "Insert 'right' or 'left', otherwise this function will not return the right one by default." << std::endl;
-    		  left_right = "right";
-    		  gripper = left_right + "_gripper";
-    	  }else if(obj.getName() == pos_groups[pos_groups.size() -1] && (left_right == "right" || left_right == "left")){
-    		  gripper = left_right + "_gripper";
+    		  std::cout << "Insert '" << right_def << "' or '" << left_def << "', otherwise this function will not return the right one by default." << std::endl;
+    		  left_right = right_def;
+    		  gripper = left_right + gripper_def;
+    	  }else if(obj.getName() == pos_groups[pos_groups.size() -1] && (left_right == right_def || left_right == left_def)){
+    		  gripper = left_right + gripper_def;
     	  }else if(obj.getName() != pos_groups[pos_groups.size() -1]){
     		  gripper = obj.getEndEffectorLink();
     	  }
@@ -712,14 +899,14 @@ namespace obj_functions
   bool setEePoseTarget(moveit::planning_interface::MoveGroup& obj, geometry_msgs::Pose pose, std::string left_right)
   {
 	  bool success = false;
-	  std::vector<std::string> pos_groups = obj_functions::GroupNameAvailable();
+	  std::vector<std::string> pos_groups = GroupNameAvailable();
 	  std::string gripper;
-	  if(obj.getName() == pos_groups[pos_groups.size() -1] && (left_right != "right" || left_right != "left")){
+	  if(obj.getName() == pos_groups[pos_groups.size() -1] && (left_right != right_def || left_right != left_def)){
 		  std::cout << "Warning: insert correctly to which gripper you want to assign to that pose msg. ";
-		  std::cout << "Insert 'right' or 'left', otherwise this function will not return positive value." << std::endl;
+		  std::cout << "Insert '" << right_def << "' or '" << left_def << "', otherwise this function will not return positive value." << std::endl;
 		  return false;
-	  }else if(obj.getName() == pos_groups[pos_groups.size() -1] && (left_right == "right" || left_right == "left")){
-		  gripper = left_right + "_gripper";
+	  }else if(obj.getName() == pos_groups[pos_groups.size() -1] && (left_right == right_def || left_right == left_def)){
+		  gripper = left_right + gripper_def;
 	  }else if(obj.getName() != pos_groups[pos_groups.size() -1]){
 		  gripper = obj.getEndEffectorLink();
 	  }
@@ -745,7 +932,7 @@ namespace obj_functions
   bool setJointValuesTarget(moveit::planning_interface::MoveGroup& obj, std::vector<double> vector, std::string r_l_single)
   {
 	  // All the possible groups
-	  std::vector<std::string> pos_groups = obj_functions::GroupNameAvailable();
+	  std::vector<std::string> pos_groups = GroupNameAvailable();
 	  // Current object group name
 	  std::string GroupName = obj.getName();
 	  // Current group joints names
@@ -757,9 +944,9 @@ namespace obj_functions
 
 	  // CHECK AND CONTROL
 	  if(GroupName == pos_groups[num_groups-1]){
-		  if(r_l_single != "right" || r_l_single != "left")
+		  if(r_l_single != right_def || r_l_single != left_def)
 			  return false;
-		  else if(r_l_single == "right" || r_l_single == "left")
+		  else if(r_l_single == right_def || r_l_single == left_def)
 			  size = size/2;
 	  }
 	  if(size != vector.size())
@@ -906,7 +1093,7 @@ namespace obj_functions
   //NO effective check (partial check on the link name)
   bool attachObj2group(moveit::planning_interface::MoveGroup& group, std::string obj_id, std::string link_id,  double time2wait)
   {
-	  std::vector<std::string> link_names = obj_functions::getLinkNames(group);
+	  std::vector<std::string> link_names = getLinkNames(group);
 	  for(int i = 0; i < link_names.size(); i++)
 	  {
 		  if(link_names[i] == link_id){
