@@ -37,6 +37,9 @@
 // Common define values
 #define	std_time					0.05
 #define	stdAttempts4booleanFunc		5
+//Moveit! values
+#define att_exit					5 //maximum # moveit planner attempts
+#define time_exit					6.0 //maximum time value moveit planner can use
 //The following define structures could change according to the robot
 #define	generic_str					""
 //Baxter default values
@@ -156,23 +159,30 @@ namespace moveit_basics_functions
 
   //brief: Function to generate a collision object (SPHERE)
   moveit_msgs::CollisionObject collision_obj_generator(std::string id_collision_obj,
-    		  geometry_msgs::Vector3 position, double radius, std::string header_frame_id = std_head_frame, std::string solid_type = "SPHERE");
+    		  geometry_msgs::Vector3 position, double radius, std::string solid_type = "SPHERE", std::string header_frame_id = std_head_frame);
 
   //brief: Function to generate a collision object (BOX) -- Using RPY in degree
   //       there is a function to know which is the planning frame "group.getPlanningFrame()" default = "/world"
-  moveit_msgs::CollisionObject collision_obj_generator(std::string id_collision_obj, geometry_msgs::Vector3 orientation, geometry_msgs::Vector3 position,
-		  geometry_msgs::Vector3 dimension, std::string header_frame_id = std_head_frame , std::string solid_type = "BOX");
+  moveit_msgs::CollisionObject collision_obj_generator(std::string id_collision_obj, geometry_msgs::Vector3 position, geometry_msgs::Vector3 orientation,
+		  geometry_msgs::Vector3 dimension, std::string solid_type = "BOX", std::string header_frame_id = std_head_frame);
   //brief: Function to generate a collision object (BOX) -- Using Quaternions
-  moveit_msgs::CollisionObject collision_obj_generator(std::string id_collision_obj, geometry_msgs::Quaternion quat, geometry_msgs::Vector3 position,
-		  geometry_msgs::Vector3 dimension, std::string header_frame_id = std_head_frame , std::string solid_type = "BOX");
+  moveit_msgs::CollisionObject collision_obj_generator(std::string id_collision_obj, geometry_msgs::Vector3 position, geometry_msgs::Quaternion quat,
+		  geometry_msgs::Vector3 dimension, std::string solid_type = "BOX", std::string header_frame_id = std_head_frame);
 
   //brief: Function to generate a collision object (Cylinder or Cone) -- Using RPY in degree
-  moveit_msgs::CollisionObject collision_obj_generator(std::string id_collision_obj, geometry_msgs::Vector3 orientation, geometry_msgs::Vector3 position,
-		  double height, double radius, std::string header_frame_id = std_head_frame , std::string solid_type = "CYLINDER");
+  moveit_msgs::CollisionObject collision_obj_generator(std::string id_collision_obj, geometry_msgs::Vector3 position, geometry_msgs::Vector3 orientation,
+		  double height, double radius, std::string solid_type = "CYLINDER", std::string header_frame_id = std_head_frame);
   //brief: Function to generate a collision object (Cylinder or Cone) -- Using Quaternions
-  moveit_msgs::CollisionObject collision_obj_generator(std::string id_collision_obj, geometry_msgs::Quaternion quat, geometry_msgs::Vector3 position,
-		  double height, double radius, std::string header_frame_id = std_head_frame , std::string solid_type = "CYLINDER");
+  moveit_msgs::CollisionObject collision_obj_generator(std::string id_collision_obj, geometry_msgs::Vector3 position, geometry_msgs::Quaternion quat,
+		  double height, double radius, std::string solid_type = "CYLINDER", std::string header_frame_id = std_head_frame);
 
+  /* TO FINISH!
+  //brief: Function to generate a collision object (BOX) -- Using RPY in degree
+  //       define the position of the solid by the the centre of the solid base instead of the centre of the whole solid
+  //       in "collision_obj_generator" the solid position is defined by the centre of it.
+  moveit_msgs::CollisionObject collision_obj_generator_z(std::string id_collision_obj, geometry_msgs::Vector3 position, geometry_msgs::Vector3 orientation,
+		  geometry_msgs::Vector3 dimension, std::string solid_type = "BOX", std::string header_frame_id = std_head_frame);
+  */
 
   //brief: Functions to get the Endpoint State, Pose, Twist, Wrench
   baxter_core_msgs::EndpointState getEndPointStateFromTopic(std::string right_left);
@@ -267,11 +277,29 @@ namespace obj_functions
   //       If you want to set the default tolerance do not put any tolerance value
   bool setEePositionTolerance(moveit::planning_interface::MoveGroup& obj, double toll = baxter_def_pos_toll);
 
+  //brief: Function to set constraints
+  bool setConstraint(moveit::planning_interface::MoveGroup& obj, moveit_msgs::Constraints constraint);
+
   //brief: Function to clear all the constraints
   bool clearConstraints(moveit::planning_interface::MoveGroup& obj);
 
-  void move_f(moveit::planning_interface::MoveGroup& obj);
+  //brief: Function to plan and execute safely:
+  //       if the path plan is not found it return a false msg and the robot do not move
+  bool plan_execute_safely(moveit::planning_interface::MoveGroup& obj);
 
+  //brief: Function to plan and execute safely, increasing the planning time gradually until "#define time_exit"
+  //       if "restore_initial == true" the previous value is restored in the end
+  bool plan_execute_safely_time_incresing(moveit::planning_interface::MoveGroup& obj, bool restore_initial = true);
+
+  //brief: Function to plan and execute safely, increasing the planning attempts gradually until "#define att_exit"
+  //       if "restore_initial == true" the default value (1) is restored in the end
+  bool plan_execute_safely_attempt_incresing(moveit::planning_interface::MoveGroup& obj, bool restore_initial = true);
+
+  //brief: Function to plan and move directly [not safe]
+  void move_direct(moveit::planning_interface::MoveGroup& obj);
+
+  //brief: Function to stop any trajectory motion, if one is running
+  void motion_stop(moveit::planning_interface::MoveGroup& obj);
 
 
   ////// ENVIRONMENT FUNCTIONS //////
@@ -331,7 +359,7 @@ namespace obj_functions
  * - setStartStateToCurrentState
  * - setSupportSurfaceName **
  * - setJointValueTarget
- * - setApproximateJointValueTarget **
+ * - setApproximateJointValueTarget
  * - setPositionTarget
  * - setRPYTarget
  * - setOrientationTarget
@@ -348,12 +376,12 @@ namespace obj_functions
  * - detachObject //
  *
  * - computeCartesianPath
- * - Move
- * - Plan
- * - Execute
- * - asyncMove
- * - asyncExecute
- * - Stop
+ * - Move //
+ * - Plan //
+ * - Execute //
+ * - asyncMove **
+ * - asyncExecute **
+ * - Stop //
  * - Pick **
  * - Place **
  *

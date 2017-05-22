@@ -366,6 +366,7 @@ namespace moveit_basics_functions
   std::vector<std::string> get_possible_solid_shapes(void)
   {
 	  std::vector<std::string> solids;
+	  solids.resize(4);
 	  solids[0] = "BOX";
 	  solids[1] = "SPHERE";
 	  solids[2] = "CYLINDER";
@@ -375,8 +376,8 @@ namespace moveit_basics_functions
   }
 
   //Collision object generator: SPHERE
-  moveit_msgs::CollisionObject collision_obj_generator(std::string id_collision_obj, geometry_msgs::Vector3 position, double radius, std::string header_frame_id , std::string solid_type)
-{
+  moveit_msgs::CollisionObject collision_obj_generator(std::string id_collision_obj, geometry_msgs::Vector3 position, double radius, std::string solid_type, std::string header_frame_id)
+  {
 	  //Collision object definition
 	  moveit_msgs::CollisionObject collision_object;
 	  collision_object.id = id_collision_obj;
@@ -396,13 +397,13 @@ namespace moveit_basics_functions
 	  solid_pose.position.x = position.x; solid_pose.position.y = position.y; solid_pose.position.z = position.z;
 
 	  collision_object.primitives.push_back(output_solid);
-	  collision_object.primitives.push_back(output_solid);
+	  collision_object.primitive_poses.push_back(solid_pose);
 
 	  return collision_object;
   }
 
   //Collision object generator: BOX -- Using RPY in degree
-  moveit_msgs::CollisionObject collision_obj_generator(std::string id_collision_obj, geometry_msgs::Vector3 orientation, geometry_msgs::Vector3 position, geometry_msgs::Vector3 dimension, std::string header_frame_id , std::string solid_type)
+  moveit_msgs::CollisionObject collision_obj_generator(std::string id_collision_obj, geometry_msgs::Vector3 position, geometry_msgs::Vector3 orientation, geometry_msgs::Vector3 dimension, std::string solid_type, std::string header_frame_id)
   {
  	  //Collision object definition
   	  moveit_msgs::CollisionObject collision_object;
@@ -425,12 +426,12 @@ namespace moveit_basics_functions
   	  solid_pose.position.x = position.x; solid_pose.position.y = position.y; solid_pose.position.z = position.z;
 
   	  collision_object.primitives.push_back(output_solid);
-  	  collision_object.primitives.push_back(output_solid);
+  	  collision_object.primitive_poses.push_back(solid_pose);
 
   	  return collision_object;
-    }
+   }
   //Collision object generator: BOX -- Using Quaternions
-  moveit_msgs::CollisionObject collision_obj_generator(std::string id_collision_obj, geometry_msgs::Quaternion quat, geometry_msgs::Vector3 position, geometry_msgs::Vector3 dimension, std::string header_frame_id , std::string solid_type)
+  moveit_msgs::CollisionObject collision_obj_generator(std::string id_collision_obj, geometry_msgs::Vector3 position, geometry_msgs::Quaternion quat, geometry_msgs::Vector3 dimension, std::string solid_type, std::string header_frame_id)
   {
  	  //Collision object definition
   	  moveit_msgs::CollisionObject collision_object;
@@ -453,13 +454,13 @@ namespace moveit_basics_functions
   	  solid_pose.position.x = position.x; solid_pose.position.y = position.y; solid_pose.position.z = position.z;
 
   	  collision_object.primitives.push_back(output_solid);
-  	  collision_object.primitives.push_back(output_solid);
+  	  collision_object.primitive_poses.push_back(solid_pose);
 
   	  return collision_object;
-    }
+   }
 
   //Collision object generator: CYLINDER or CONE -- Using RPY in degree
-  moveit_msgs::CollisionObject collision_obj_generator(std::string id_collision_obj, geometry_msgs::Vector3 orientation, geometry_msgs::Vector3 position, double height, double radius, std::string header_frame_id , std::string solid_type)
+  moveit_msgs::CollisionObject collision_obj_generator(std::string id_collision_obj, geometry_msgs::Vector3 position, geometry_msgs::Vector3 orientation, double height, double radius, std::string solid_type, std::string header_frame_id)
   {
  	  //Collision object definition
   	  moveit_msgs::CollisionObject collision_object;
@@ -473,8 +474,8 @@ namespace moveit_basics_functions
   	  output_solid.type = shape_msgs::SolidPrimitive::CYLINDER;
   	  if(solid_type == "CONE")
   		  output_solid.type = shape_msgs::SolidPrimitive::CONE;
-  	  else
-  		  std::cout << "Warning: A default cylinder has been created, but it was defined wrongly. '" << solid_type << "' is valid!" << std::endl << "Just 'CYLINDER' and 'CONE' are valid!" << std::endl;
+  	  else if(solid_type != "CONE" && solid_type != "CYLINDER")
+  		  std::cout << "Warning: A default cylinder has been created, but the solid type inserted was not valid. '" << solid_type << "' is not valid!" << std::endl << "Just 'CYLINDER' and 'CONE' are valid!" << std::endl;
 
   	  output_solid.dimensions.resize(2);
   	  output_solid.dimensions[0] = height;
@@ -487,12 +488,12 @@ namespace moveit_basics_functions
   	  solid_pose.position.x = position.x; solid_pose.position.y = position.y; solid_pose.position.z = position.z;
 
   	  collision_object.primitives.push_back(output_solid);
-  	  collision_object.primitives.push_back(output_solid);
+  	  collision_object.primitive_poses.push_back(solid_pose);
 
   	  return collision_object;
-    }
+   }
   //Collision object generator: CYLINDER or CONE -- Using Quaternions
-  moveit_msgs::CollisionObject collision_obj_generator(std::string id_collision_obj, geometry_msgs::Quaternion quat, geometry_msgs::Vector3 position, double height, double radius, std::string header_frame_id , std::string solid_type)
+  moveit_msgs::CollisionObject collision_obj_generator(std::string id_collision_obj, geometry_msgs::Vector3 position, geometry_msgs::Quaternion quat, double height, double radius, std::string solid_type, std::string header_frame_id)
   {
  	  //Collision object definition
   	  moveit_msgs::CollisionObject collision_object;
@@ -506,8 +507,8 @@ namespace moveit_basics_functions
   	  output_solid.type = shape_msgs::SolidPrimitive::CYLINDER;
   	  if(solid_type == "CONE")
   		  output_solid.type = shape_msgs::SolidPrimitive::CONE;
-  	  else
-  		  std::cout << "Warning: A default cylinder has been created, but it was defined wrongly. '" << solid_type << "' is valid!" << std::endl << "Just 'CYLINDER' and 'CONE' are valid!" << std::endl;
+  	  else if(solid_type != "CONE" && solid_type != "CYLINDER")
+  		  std::cout << "Warning: A default cylinder has been created, but the solid type inserted was not valid. '" << solid_type << "' is not valid!" << std::endl << "Just 'CYLINDER' and 'CONE' are valid!" << std::endl;
 
   	  output_solid.dimensions.resize(2);
   	  output_solid.dimensions[0] = height;
@@ -520,15 +521,37 @@ namespace moveit_basics_functions
   	  solid_pose.position.x = position.x; solid_pose.position.y = position.y; solid_pose.position.z = position.z;
 
   	  collision_object.primitives.push_back(output_solid);
-  	  collision_object.primitives.push_back(output_solid);
+  	  collision_object.primitive_poses.push_back(solid_pose);
 
   	  return collision_object;
-    }
+   }
+
+  /* TO FINISH!
+  moveit_msgs::CollisionObject collision_obj_generator_z(std::string id_collision_obj, geometry_msgs::Vector3 position, geometry_msgs::Vector3 orientation, geometry_msgs::Vector3 dimension, std::string solid_type, std::string header_frame_id)
+  {
+	  geometry_msgs::Vector3 position_new = position;
+	  double ori_x = orientation.x;
+	  double ori_y = orientation.y;
+
+	  //definition of the centre of the solid
+	  double x = position.x + (sin(ori_y) * dimension.z/2);
+	  double y = position.y + (sin(ori_x) * dimension.z/2);
+	  double z = position.z + (cos(ori_x) * cos(ori_y) * dimension.z/2);
+	  position_new.x = x; position_new.y = y; position_new.z = z;
+
+	  moveit_msgs::CollisionObject collision_object = collision_obj_generator(id_collision_obj, position_new, orientation, dimension, solid_type, header_frame_id);
+
+   	  return collision_object;
+  }
+  */
 
 
   //Callback for the end-effector endpoint state (position, twist, wrench) | global variable
-  void callback_Ee(baxter_core_msgs::EndpointState data){
-	  gl_end_point_state = data;}
+  void callback_Ee(const baxter_core_msgs::EndpointState data){
+	  gl_end_point_state = data;
+	  //to check if the callback function is running uncomment th following line
+	  //std::cout << "XYZ.x: " << data.pose.position.x << std::endl;
+  }
 
   baxter_core_msgs::EndpointState getEndPointStateFromTopic(std::string right_left)
   {
@@ -540,7 +563,7 @@ namespace moveit_basics_functions
 		  ros::NodeHandle nh;
 		  std::string topic_str = base_robot_part + right_left + end_point;
 		  if(moveit_side_functions::CheckTopicExistence(topic_str)){
-			  ros::Subscriber sub = nh.subscribe(topic_str, 1, callback_Ee);
+			  ros::Subscriber sub = nh.subscribe<baxter_core_msgs::EndpointState>(topic_str, 10, callback_Ee);
 			  eps2return = gl_end_point_state;
 		  }else{
 			  std::cout << "Warning: the topic '" << topic_str << "' does not exist! Probably you are using another topic definition or the robot is still not publishing. ";
@@ -706,6 +729,7 @@ namespace obj_functions
   std::vector<std::string> GroupNameAvailable(void)
   {
 	  std::vector<std::string> names;
+	  names.resize(3);
 	  names[0] = MAC_SUM(left_def, arm_group_name);
 	  names[1] = MAC_SUM(left_def, arm_group_name);
 	  // the option "both_arms" must be always the last one
@@ -726,6 +750,7 @@ namespace obj_functions
   	  return JointNames;
   }
 
+  //TO CHECK!
   std::vector<double> getCurrentArmJointValues(moveit::planning_interface::MoveGroup& obj, std::string r_l_single)
   {
 	  std::vector<std::string> pos_groups = GroupNameAvailable();
@@ -801,6 +826,7 @@ namespace obj_functions
     	  RPY2return.z = temp_RPY[2];
   	  return RPY2return;
     }
+  //TO CHECK!
 
   //NO effective check
   bool setWorkSpaceBox(moveit::planning_interface::MoveGroup& obj, geometry_msgs::Vector3 min_XYZ, geometry_msgs::Vector3 max_XYZ)
@@ -901,6 +927,7 @@ namespace obj_functions
 	  bool success = false;
 	  std::vector<std::string> pos_groups = GroupNameAvailable();
 	  std::string gripper;
+
 	  if(obj.getName() == pos_groups[pos_groups.size() -1] && (left_right != right_def || left_right != left_def)){
 		  std::cout << "Warning: insert correctly to which gripper you want to assign to that pose msg. ";
 		  std::cout << "Insert '" << right_def << "' or '" << left_def << "', otherwise this function will not return positive value." << std::endl;
@@ -917,7 +944,7 @@ namespace obj_functions
 		  obj.setPoseTarget(pose, gripper);
 	  	  moveit_side_functions::standardSleep();
 	  	  geometry_msgs::Pose goal_pose = moveit_side_functions::PoseStamped2Pose(obj.getPoseTarget(gripper));
-	  	  if(moveit_side_functions::PoseEquivalence(goal_pose, pose)){
+	  	  if(moveit_side_functions::PoseEquivalence(goal_pose, pose, 2)){
 	  		  success = true;
 	  		  std::cout << "Done correctly: The goal pose time of the " << gripper << " of the group " << obj.getName() << " has been set." << std::endl;
 	  	  }else{
@@ -1055,6 +1082,14 @@ namespace obj_functions
 	  return success;
   }
 
+  //-- effective check
+  bool setConstraint(moveit::planning_interface::MoveGroup& obj, moveit_msgs::Constraints constraint)
+  {
+	  obj.setPathConstraints(constraint);
+
+	  return true;
+  }
+
   //NO effective check
   bool clearConstraints(moveit::planning_interface::MoveGroup& obj)
   {
@@ -1063,12 +1098,73 @@ namespace obj_functions
 	  return true;
   }
 
+  //YES effective check
+  bool plan_execute_safely(moveit::planning_interface::MoveGroup& obj)
+  {
+	  bool success;
+	  moveit::planning_interface::MoveGroup::Plan my_plan;
+	  success = obj.plan(my_plan);
+	  if(success)
+		  obj.execute(my_plan);
+	  else
+	    std::cout << "Something went wrong during planning!" << std::endl;
 
-  void move_f(moveit::planning_interface::MoveGroup& obj)
+	  return success;
+  }
+
+  //YES effective check
+  bool plan_execute_safely_time_incresing(moveit::planning_interface::MoveGroup& obj, bool restore_initial)
+  {
+	  bool success = false;
+	  double curr_time = obj.getPlanningTime();
+	  double initial_curr_time = curr_time;
+	  while(!success && curr_time <= time_exit)
+	  {
+		  success = plan_execute_safely(obj);
+		  if (!success){
+			  curr_time += 2.0;
+			  setPlanningTime(obj, curr_time);
+		  }
+	  }
+	  //restore the previous value
+	  if(initial_curr_time != curr_time && restore_initial)
+		  setPlanningTime(obj, initial_curr_time);
+
+	  return success;
+  }
+
+  //YES effective check
+  bool plan_execute_safely_attempt_incresing(moveit::planning_interface::MoveGroup& obj, bool restore_initial)
+  {
+	  bool success = false;
+	  unsigned int default_att = 1;
+	  unsigned int curr_att = default_att;
+	  while(!success && curr_att <= att_exit)
+	  {
+		  success = plan_execute_safely(obj);
+		  if (!success){
+			  curr_att += 2;
+			  setPlanningAttempts(obj, curr_att);
+		  }
+	  }
+	  //restore the previous the default value
+	  if(default_att != curr_att && restore_initial)
+		  setPlanningAttempts(obj, default_att);
+
+	  return success;
+  }
+
+  //NO effective check
+  void move_direct(moveit::planning_interface::MoveGroup& obj)
   {
 	  obj.move();
   }
 
+  //NO effective check
+  void motion_stop(moveit::planning_interface::MoveGroup& obj)
+  {
+	  obj.stop();
+  }
 
 
   ////// ENVIRONMENT FUNCTIONS //////
