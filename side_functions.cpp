@@ -789,84 +789,6 @@ namespace obj_functions
   	  return JointNames;
   }
 
-  /* MOVEIT ERROR
-  std::vector<double> getCurrentArmJointValues(moveit::planning_interface::MoveGroup& obj, std::string r_l_single)
-  {
-	  std::vector<std::string> pos_groups = GroupNameAvailable();
-	  std::vector<std::string> joint_names = getJointNames(obj);
-	  std::vector<double> joint_val;
-
-	  //if two arms and I just want to know one of them
-	  if(obj.getName() == pos_groups[pos_groups.size() -1] && (r_l_single == right_def || r_l_single == left_def)){
-	  	  std::cout << "Even if the group " << obj.getName() << " is using both arms, just the joint values of the " << r_l_single << " arm are returned." << std::endl;
-	  	  std::vector<double> joint_val_temp = obj.getCurrentJointValues();
-	  	  int size1arm = joint_val_temp.size()/2;
-	  	  int count = 0;
-	  	  for(int i = 0; i < size1arm; i++)
-	  	  {
-	  		if(joint_names[i].find(r_l_single) >= 0){
-	  			joint_val[count] = joint_val_temp[i];
-	  			count++;
-	  		}
-	  	  }
-	  }else{
-		  joint_val = obj.getCurrentJointValues();
-	  }
-
-	  return joint_val;
-  }
-
-  geometry_msgs::Pose getCurrentGripperPose(moveit::planning_interface::MoveGroup& obj, std::string left_right)
-  {
-	  std::vector<std::string> pos_groups = GroupNameAvailable();
-  	  std::string gripper;
-  	  if(obj.getName() == pos_groups[pos_groups.size() -1] && (left_right != right_def || left_right != left_def)){
-  		  std::cout << "Warning: insert correctly to which gripper you want to get the current pose.";
-  		  std::cout << "Insert '" << right_def << "' or '" << left_def << "', otherwise this function will not return the right one by default." << std::endl;
-  		  left_right = right_def;
-  		  gripper = left_right + gripper_def;
-  	  }else if(obj.getName() == pos_groups[pos_groups.size() -1] && (left_right == right_def || left_right == left_def)){
-  		  gripper = left_right + gripper_def;
-  	  }else if(obj.getName() != pos_groups[pos_groups.size() -1]){
-  		  gripper = obj.getEndEffectorLink();
-  	  }
-
-  	  geometry_msgs::PoseStamped poseStamp2return = obj.getCurrentPose(gripper);
-  	  geometry_msgs::Pose pose2return = moveit_side_functions::PoseStamped2Pose(poseStamp2return);
-	  return pose2return;
-  }
-
-  geometry_msgs::Quaternion getCurrentGripperQuaternion(moveit::planning_interface::MoveGroup& obj, std::string left_right)
-  {
-	  geometry_msgs::Pose temp_pose = getCurrentGripperPose(obj, left_right);
-	  geometry_msgs::Quaternion quat2return = temp_pose.orientation;
-	  return quat2return;
-  }
-
-  geometry_msgs::Vector3 getCurrentGripperRPY(moveit::planning_interface::MoveGroup& obj, std::string left_right)
-    {
-  	  std::vector<std::string> pos_groups = GroupNameAvailable();
-    	  std::string gripper;
-    	  if(obj.getName() == pos_groups[pos_groups.size() -1] && (left_right != right_def || left_right != left_def)){
-    		  std::cout << "Warning: insert correctly to which gripper you want to get the current pose. ";
-    		  std::cout << "Insert '" << right_def << "' or '" << left_def << "', otherwise this function will not return the right one by default." << std::endl;
-    		  left_right = right_def;
-    		  gripper = left_right + gripper_def;
-    	  }else if(obj.getName() == pos_groups[pos_groups.size() -1] && (left_right == right_def || left_right == left_def)){
-    		  gripper = left_right + gripper_def;
-    	  }else if(obj.getName() != pos_groups[pos_groups.size() -1]){
-    		  gripper = obj.getEndEffectorLink();
-    	  }
-
-    	  geometry_msgs::Vector3 RPY2return;
-    	  std::vector<double> temp_RPY = obj.getCurrentRPY(gripper);
-    	  RPY2return.x = temp_RPY[0];
-    	  RPY2return.y = temp_RPY[1];
-    	  RPY2return.z = temp_RPY[2];
-  	  return RPY2return;
-    }
-  */
-
   //NO effective check
   bool setWorkSpaceBox(moveit::planning_interface::MoveGroup& obj, geometry_msgs::Vector3 min_XYZ, geometry_msgs::Vector3 max_XYZ)
   {
@@ -1258,6 +1180,85 @@ namespace obj_functions
 
   	  return true;
   }
+
+    /* MOVEIT ERROR
+    std::vector<double> getCurrentArmJointValues(moveit::planning_interface::MoveGroup& obj, std::string r_l_single)
+    {
+  	  std::vector<std::string> pos_groups = GroupNameAvailable();
+  	  std::vector<std::string> joint_names = getJointNames(obj);
+  	  std::vector<double> joint_val;
+
+  	  //if two arms and I just want to know one of them
+  	  if(obj.getName() == pos_groups[pos_groups.size() -1] && (r_l_single == right_def || r_l_single == left_def)){
+  	  	  std::cout << "Even if the group " << obj.getName() << " is using both arms, just the joint values of the " << r_l_single << " arm are returned." << std::endl;
+  	  	  std::vector<double> joint_val_temp = obj.getCurrentJointValues();
+  	  	  int size1arm = joint_val_temp.size()/2;
+  	  	  int count = 0;
+  	  	  for(int i = 0; i < size1arm; i++)
+  	  	  {
+  	  		if(joint_names[i].find(r_l_single) >= 0){
+  	  			joint_val[count] = joint_val_temp[i];
+  	  			count++;
+  	  		}
+  	  	  }
+  	  }else{
+  		  joint_val = obj.getCurrentJointValues();
+  	  }
+
+  	  return joint_val;
+    }
+
+    geometry_msgs::Pose getCurrentGripperPose(moveit::planning_interface::MoveGroup& obj, std::string left_right)
+    {
+  	  std::vector<std::string> pos_groups = GroupNameAvailable();
+    	  std::string gripper;
+    	  if(obj.getName() == pos_groups[pos_groups.size() -1] && (left_right != right_def || left_right != left_def)){
+    		  std::cout << "Warning: insert correctly to which gripper you want to get the current pose.";
+    		  std::cout << "Insert '" << right_def << "' or '" << left_def << "', otherwise this function will not return the right one by default." << std::endl;
+    		  left_right = right_def;
+    		  gripper = left_right + gripper_def;
+    	  }else if(obj.getName() == pos_groups[pos_groups.size() -1] && (left_right == right_def || left_right == left_def)){
+    		  gripper = left_right + gripper_def;
+    	  }else if(obj.getName() != pos_groups[pos_groups.size() -1]){
+    		  gripper = obj.getEndEffectorLink();
+    	  }
+
+    	  geometry_msgs::PoseStamped poseStamp2return = obj.getCurrentPose(gripper);
+    	  geometry_msgs::Pose pose2return = moveit_side_functions::PoseStamped2Pose(poseStamp2return);
+  	  return pose2return;
+    }
+
+    geometry_msgs::Quaternion getCurrentGripperQuaternion(moveit::planning_interface::MoveGroup& obj, std::string left_right)
+    {
+  	  geometry_msgs::Pose temp_pose = getCurrentGripperPose(obj, left_right);
+  	  geometry_msgs::Quaternion quat2return = temp_pose.orientation;
+  	  return quat2return;
+    }
+
+    geometry_msgs::Vector3 getCurrentGripperRPY(moveit::planning_interface::MoveGroup& obj, std::string left_right)
+    {
+      std::vector<std::string> pos_groups = GroupNameAvailable();
+      std::string gripper;
+      if(obj.getName() == pos_groups[pos_groups.size() -1] && (left_right != right_def || left_right != left_def)){
+    	  std::cout << "Warning: insert correctly to which gripper you want to get the current pose. ";
+    	  std::cout << "Insert '" << right_def << "' or '" << left_def << "', otherwise this function will not return the right one by default." << std::endl;
+    	  left_right = right_def;
+    	  gripper = left_right + gripper_def;
+      }else if(obj.getName() == pos_groups[pos_groups.size() -1] && (left_right == right_def || left_right == left_def)){
+    	  gripper = left_right + gripper_def;
+      }else if(obj.getName() != pos_groups[pos_groups.size() -1]){
+    	  gripper = obj.getEndEffectorLink();
+      }
+
+   	  geometry_msgs::Vector3 RPY2return;
+   	  std::vector<double> temp_RPY = obj.getCurrentRPY(gripper);
+   	  RPY2return.x = temp_RPY[0];
+   	  RPY2return.y = temp_RPY[1];
+   	  RPY2return.z = temp_RPY[2];
+      return RPY2return;
+    }
+    */
+
 
 
 // End namespace "obj_functions"

@@ -246,20 +246,6 @@ namespace obj_functions
   //brief: Function to get the joint names
   std::vector<std::string> getJointNames(moveit::planning_interface::MoveGroup& obj);
 
-  /* MOVEIT ERROR
-  //brief: Function to get the current joint values of a specific arm or both, the default is all the joints values
-  std::vector<double> getCurrentArmJointValues(moveit::planning_interface::MoveGroup& obj, std::string r_l_single = generic_str);
-
-  //brief: Function to get the current Pose of a specific gripper, the default gripper is the right one
-  geometry_msgs::Pose getCurrentGripperPose(moveit::planning_interface::MoveGroup& obj, std::string left_right = generic_str);
-
-  //brief: Function to get the current orientation in quaternions of a specific gripper, the default gripper is the right one
-  geometry_msgs::Quaternion getCurrentGripperQuaternion(moveit::planning_interface::MoveGroup& obj, std::string left_right);
-
-  //brief: Function to get the current orientation in RPY of a specific gripper, the default gripper is the right one
-  geometry_msgs::Vector3 getCurrentGripperRPY(moveit::planning_interface::MoveGroup& obj, std::string left_right);
-  */
-
   //brief: Function to define the Work Space Box
   //       This function has to be used when the planning frame is the world ("/world").
   bool setWorkSpaceBox(moveit::planning_interface::MoveGroup& obj, geometry_msgs::Vector3 min_XYZ, geometry_msgs::Vector3 max_XYZ);
@@ -345,6 +331,20 @@ namespace obj_functions
   //brief: Function to detach a specific object to a moveit group
   //       obj_id = obj_in_the_scene.id
   bool detachObj2group(moveit::planning_interface::MoveGroup& group, std::string obj_id, double time2wait = std_time);
+
+  /* MOVEIT ERROR
+  //brief: Function to get the current joint values of a specific arm or both, the default is all the joints values
+  std::vector<double> getCurrentArmJointValues(moveit::planning_interface::MoveGroup& obj, std::string r_l_single = generic_str);
+
+  //brief: Function to get the current Pose of a specific gripper, the default gripper is the right one
+  geometry_msgs::Pose getCurrentGripperPose(moveit::planning_interface::MoveGroup& obj, std::string left_right = generic_str);
+
+  //brief: Function to get the current orientation in quaternions of a specific gripper, the default gripper is the right one
+  geometry_msgs::Quaternion getCurrentGripperQuaternion(moveit::planning_interface::MoveGroup& obj, std::string left_right);
+
+  //brief: Function to get the current orientation in RPY of a specific gripper, the default gripper is the right one
+  geometry_msgs::Vector3 getCurrentGripperRPY(moveit::planning_interface::MoveGroup& obj, std::string left_right);
+  */
 
 
 // End namespace "obj_functions"
