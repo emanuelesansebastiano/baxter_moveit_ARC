@@ -552,19 +552,32 @@ namespace moveit_basics_functions
 	  //to check if the callback function is running uncomment th following line
 	  //std::cout << "XYZ.x: " << data.pose.position.x << std::endl;
   }
-
-  baxter_core_msgs::EndpointState getEndPointStateFromTopic(std::string right_left)
+  baxter_core_msgs::EndpointState getEndPointStateFromTopic(std::string right_left, ros::NodeHandle &nh)
   {
 	  baxter_core_msgs::EndpointState eps2return;
 	  if(right_left != right_def && right_left != left_def){
 		  std::cout << "Warning: insert correctly to which gripper you want to get the current information. ";
 		  std::cout << "Insert '" << right_def << "' or '" << left_def << "', otherwise this function will return an empty message by default." << std::endl;
 	  }else{
-		  ros::NodeHandle nh;
 		  std::string topic_str = base_robot_part + right_left + end_point;
 		  if(moveit_side_functions::CheckTopicExistence(topic_str)){
-			  ros::Subscriber sub = nh.subscribe<baxter_core_msgs::EndpointState>(topic_str, 10, callback_Ee);
-			  eps2return = gl_end_point_state;
+			  //initialization of the exit param
+			  ros::Subscriber sub = nh.subscribe <baxter_core_msgs::EndpointState>(topic_str, 10, callback_Ee);
+			  double curr_time = 0.0; double step_time = std_time;
+			  //do not proceed until the topic is not read correctly or the maximum time expired "#define exit_finction_time"
+			  while (eps2return.pose.position.x == 0.0 && eps2return.pose.position.y == 0.0 && curr_time < exit_finction_time)
+			  {
+				  eps2return = gl_end_point_state;
+				  //the robot cannot be in the position (0.0,0.0,z) cuz it is inside the body
+				  if(eps2return.pose.position.x == 0.0 && eps2return.pose.position.y == 0.0){
+					  curr_time += step_time;
+					  moveit_side_functions::standardSleep(step_time);
+					  ros::spinOnce();
+				  }
+			  }
+			  //reinitialization of the global variable
+			  baxter_core_msgs::EndpointState default_gl_end;
+			  gl_end_point_state = default_gl_end;
 		  }else{
 			  std::cout << "Warning: the topic '" << topic_str << "' does not exist! Probably you are using another topic definition or the robot is still not publishing. ";
 			  std::cout << "Check how is the topic defined in you robot and change the topic definition in the #define part of the header file." << std::endl;
@@ -575,37 +588,57 @@ namespace moveit_basics_functions
 	  return eps2return;
   }
 
-  geometry_msgs::Pose getEePoseFromTopic(std::string right_left)
+  geometry_msgs::Pose getEePoseFromTopic(std::string right_left, ros::NodeHandle &nh)
   {
-	  baxter_core_msgs::EndpointState eps2return = getEndPointStateFromTopic(right_left);
+	  baxter_core_msgs::EndpointState eps2return = getEndPointStateFromTopic(right_left,nh);
 	  return eps2return.pose;
   }
-  geometry_msgs::Twist getEeTwistFromTopic(std::string right_left)
+  geometry_msgs::Twist getEeTwistFromTopic(std::string right_left, ros::NodeHandle &nh)
   {
-  	  baxter_core_msgs::EndpointState eps2return = getEndPointStateFromTopic(right_left);
+  	  baxter_core_msgs::EndpointState eps2return = getEndPointStateFromTopic(right_left,nh);
   	  return eps2return.twist;
   }
-  geometry_msgs::Wrench getEeWrenchFromTopic(std::string right_left)
+  geometry_msgs::Wrench getEeWrenchFromTopic(std::string right_left, ros::NodeHandle &nh)
   {
-  	  baxter_core_msgs::EndpointState eps2return = getEndPointStateFromTopic(right_left);
+  	  baxter_core_msgs::EndpointState eps2return = getEndPointStateFromTopic(right_left,nh);
   	  return eps2return.wrench;
   }
 
   //Callback for the joints state (position, velocity, effort) | global variable
   void callback_Joint(sensor_msgs::JointState data){
 	  gl_joints_state = data;}
-  sensor_msgs::JointState getBothArmJointValFromTopic(std::string right_left)
+  sensor_msgs::JointState getBothArmJointValFromTopic(std::string right_left, ros::NodeHandle &nh)
   {
 	  sensor_msgs::JointState joints_val2return;
 	  if(right_left != right_def && right_left != left_def){
 		  std::cout << "Warning: insert correctly from which arm you want to get the current joint values.";
 		  std::cout << "Insert '" << right_def << "' or '" << left_def << "', otherwise this function will return an empty message by default." << std::endl;
 	  }else{
-		  ros::NodeHandle nh;
 		  std::string topic_str = joint_state;
 		  if(moveit_side_functions::CheckTopicExistence(topic_str)){
-			  ros::Subscriber sub = nh.subscribe(topic_str, 1, callback_Joint);
-			  joints_val2return = gl_joints_state;
+			  //initialization of the exit param
+			  double curr_time = 0.0; double step_time = std_time;
+			  double control_param = 3000.0; joints_val2return.position.push_back(control_param);
+			  //do not proceed until the topic is not read correctly or the maximum time expired "#define exit_finction_time"
+			  ros::Subscriber sub = nh.subscribe(topic_str, 10, callback_Joint);
+			  while (joints_val2return.position[0] == control_param && curr_time < exit_finction_time)
+			  {
+				  joints_val2return = gl_joints_state;
+				  curr_time += step_time;
+				  //the robot joint rotation value cannot be high as control_param
+				  if(joints_val2return.position[0] == control_param){
+					  curr_time += step_time;
+					  moveit_side_functions::standardSleep(step_time);
+					  ros::spinOnce();
+				  }
+			  }
+			  // restore the original wrong value
+			  if(joints_val2return.position[0] == control_param){
+				  joints_val2return.position[0] = 0;}
+
+			  //reinitialization of the global variable
+			  sensor_msgs::JointState default_gl_joints;
+			  gl_joints_state = default_gl_joints;
 		  }else{
 			  std::cout << "Warning: the topic '" << topic_str << "' does not exist! Probably you are using another topic definition or the robot is still not publishing.";
 			  std::cout << "Check how is the topic defined in you robot and change the topic definition in the #define part of the header file." << std::endl;
@@ -616,19 +649,21 @@ namespace moveit_basics_functions
 	  return joints_val2return;
   }
 
-  std::vector<double> getOneArmJointPositionFromTopic(std::string right_left)
+  std::vector<double> getOneArmJointPositionFromTopic(std::string right_left, ros::NodeHandle &nh)
   {
 	  std::vector<double> joints_val2return;
+	  std::string temp_str;
+	  //selection of the joint I need, sorting them
+	  std::vector<std::string> joints_name = joint_names();
+	  int joints_num = joints_name.size();
 	  joints_val2return.resize(joints_num);
 
-	  sensor_msgs::JointState local_joints_state = getBothArmJointValFromTopic(right_left);
+	  sensor_msgs::JointState local_joints_state = getBothArmJointValFromTopic(right_left, nh);
 
-	  //selection of the joint I need, sorting them
-	  std::string temp_str;
 	  for(int i = 0; i < joints_num; i++)
 	  {
 		  temp_str = right_left + joints_name[i];
-		  for(int y = 0; y < local_joints_state.name.size(); i++)
+		  for(int y = 0; y < local_joints_state.name.size(); y++)
 		  {
 			  if(local_joints_state.name[y] == temp_str){
 				  joints_val2return[i] = local_joints_state.position[y];
@@ -639,19 +674,21 @@ namespace moveit_basics_functions
 
 	  return joints_val2return;
   }
-  std::vector<double> getOneArmJointVelocityFromTopic(std::string right_left)
+  std::vector<double> getOneArmJointVelocityFromTopic(std::string right_left, ros::NodeHandle &nh)
   {
 	  std::vector<double> joints_val2return;
+	  std::string temp_str;
+	  //selection of the joint I need, sorting them
+	  std::vector<std::string> joints_name = joint_names();
+	  int joints_num = joints_name.size();
 	  joints_val2return.resize(joints_num);
 
-	  sensor_msgs::JointState local_joints_state = getBothArmJointValFromTopic(right_left);
+	  sensor_msgs::JointState local_joints_state = getBothArmJointValFromTopic(right_left, nh);
 
-	  //selection of the joint I need, sorting them
-	  std::string temp_str;
 	  for(int i = 0; i < joints_num; i++)
 	  {
 		  temp_str = right_left + joints_name[i];
-		  for(int y = 0; y < local_joints_state.name.size(); i++)
+		  for(int y = 0; y < local_joints_state.name.size(); y++)
 		  {
 			  if(local_joints_state.name[y] == temp_str){
 				  joints_val2return[i] = local_joints_state.velocity[y];
@@ -662,19 +699,21 @@ namespace moveit_basics_functions
 
 	  return joints_val2return;
   }
-  std::vector<double> getOneArmJointEffortFromTopic(std::string right_left)
+  std::vector<double> getOneArmJointEffortFromTopic(std::string right_left, ros::NodeHandle &nh)
   {
 	  std::vector<double> joints_val2return;
+	  std::string temp_str;
+	  //selection of the joint I need, sorting them
+	  std::vector<std::string> joints_name = joint_names();
+	  int joints_num = joints_name.size();
 	  joints_val2return.resize(joints_num);
 
-	  sensor_msgs::JointState local_joints_state = getBothArmJointValFromTopic(right_left);
+	  sensor_msgs::JointState local_joints_state = getBothArmJointValFromTopic(right_left, nh);
 
-	  //selection of the joint I need, sorting them
-	  std::string temp_str;
 	  for(int i = 0; i < joints_num; i++)
 	  {
 		  temp_str = right_left + joints_name[i];
-		  for(int y = 0; y < local_joints_state.name.size(); i++)
+		  for(int y = 0; y < local_joints_state.name.size(); y++)
 		  {
 			  if(local_joints_state.name[y] == temp_str){
 				  joints_val2return[i] = local_joints_state.effort[y];
@@ -686,31 +725,31 @@ namespace moveit_basics_functions
 	  return joints_val2return;
   }
 
-  std::vector<double> getBothArmJointPositionFromTopic(void)
+  std::vector<double> getBothArmJointPositionFromTopic(ros::NodeHandle &nh)
   {
 	  std::vector<double> joints_val2return;
-	  std::vector<double> left_temp = getOneArmJointPositionFromTopic(left_def);
-	  std::vector<double> right_temp = getOneArmJointPositionFromTopic(right_def);
+	  std::vector<double> left_temp = getOneArmJointPositionFromTopic(left_def,nh);
+	  std::vector<double> right_temp = getOneArmJointPositionFromTopic(right_def,nh);
 
 	  joints_val2return = moveit_side_functions::vector_two_cluster(left_temp, right_temp);
 
 	  return joints_val2return;
   }
-  std::vector<double> getBothArmJointVelocityFromTopic(void)
+  std::vector<double> getBothArmJointVelocityFromTopic(ros::NodeHandle &nh)
   {
 	  std::vector<double> joints_val2return;
-	  std::vector<double> left_temp = getOneArmJointVelocityFromTopic(left_def);
-	  std::vector<double> right_temp = getOneArmJointVelocityFromTopic(right_def);
+	  std::vector<double> left_temp = getOneArmJointVelocityFromTopic(left_def,nh);
+	  std::vector<double> right_temp = getOneArmJointVelocityFromTopic(right_def,nh);
 
 	  joints_val2return = moveit_side_functions::vector_two_cluster(left_temp, right_temp);
 
 	  return joints_val2return;
   }
-  std::vector<double> getBothArmJointEffortFromTopic(void)
+  std::vector<double> getBothArmJointEffortFromTopic(ros::NodeHandle &nh)
   {
 	  std::vector<double> joints_val2return;
-	  std::vector<double> left_temp = getOneArmJointEffortFromTopic(left_def);
-	  std::vector<double> right_temp = getOneArmJointEffortFromTopic(right_def);
+	  std::vector<double> left_temp = getOneArmJointEffortFromTopic(left_def,nh);
+	  std::vector<double> right_temp = getOneArmJointEffortFromTopic(right_def,nh);
 
 	  joints_val2return = moveit_side_functions::vector_two_cluster(left_temp, right_temp);
 
@@ -750,7 +789,7 @@ namespace obj_functions
   	  return JointNames;
   }
 
-  //TO CHECK!
+  /* MOVEIT ERROR
   std::vector<double> getCurrentArmJointValues(moveit::planning_interface::MoveGroup& obj, std::string r_l_single)
   {
 	  std::vector<std::string> pos_groups = GroupNameAvailable();
@@ -826,7 +865,7 @@ namespace obj_functions
     	  RPY2return.z = temp_RPY[2];
   	  return RPY2return;
     }
-  //TO CHECK!
+  */
 
   //NO effective check
   bool setWorkSpaceBox(moveit::planning_interface::MoveGroup& obj, geometry_msgs::Vector3 min_XYZ, geometry_msgs::Vector3 max_XYZ)

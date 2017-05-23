@@ -1,5 +1,6 @@
 /* Author: Emanuele Sansebastiano
-   Desc: Class to encapsulate some side functions generated for the path planning part
+   Desc: Library to encapsulate some side functions generated for the path planning part
+         This library has been developed for two arm robots
          Amazon Robotics Challenge - Universidad Jaume I (Spain) Competitor
 */
 
@@ -21,7 +22,7 @@
 
 // Baxter libraries
 #include <baxter_core_msgs/EndpointState.h>
-//#include <baxter_core_msgs/SEAJointState.h>
+#include <baxter_core_msgs/SEAJointState.h>
 
 /*
 #include <moveit_msgs/DisplayRobotState.h>
@@ -34,9 +35,13 @@
 //Macro Concatenation
 #define MAC_SUM(A, B) A # B
 
+//////////////////////////////////////////////////////////////////////////////////////
+// VALUES MODIFIABLE BY THE USER \\
+
 // Common define values
-#define	std_time					0.05
+#define	std_time					0.01
 #define	stdAttempts4booleanFunc		5
+#define exit_finction_time			0.5 //[sec]
 //Moveit! values
 #define att_exit					5 //maximum # moveit planner attempts
 #define time_exit					6.0 //maximum time value moveit planner can use
@@ -54,15 +59,28 @@
 #define joint_state					"/robot/joint_states"
 #define base_robot_part				"/robot/limb/"
 #define end_point					"/endpoint_state"
-//joint names sorted
-#define joints_name					"_s0" "_s1" "_e0" "_e1" "_w0" "_w1" "_w2"
-#define joints_num					7
 //baxter default values
 #define baxter_def_joint_toll		0.0001		//[rad]
 #define baxter_def_orient_toll		0.001		//[rad]
 #define baxter_def_pos_toll 		0.0001		//[rad]
 #define baxter_attempts				1
 #define baxter_max_factor			1.0
+
+
+//brief: Function defining the joints names in your Robot | user can change the joints names
+std::vector<std::string> joint_names(void)
+{
+	//Just modify the following line if strickly necessary
+	const std::string joints_names [] = {"_s0", "_s1", "_e0", "_e1", "_w0", "_w1", "_w2"};
+	std::vector<std::string> j_n;
+	j_n.resize(sizeof(joints_names)/sizeof(*joints_names));
+	for(int i = 0; i < j_n.size(); i++)
+		j_n[i] = joints_names[i];
+
+	return j_n;
+}
+
+//////////////////////////////////////////////////////////////////////////////////////
 
 
 
@@ -185,21 +203,27 @@ namespace moveit_basics_functions
   */
 
   //brief: Functions to get the Endpoint State, Pose, Twist, Wrench
-  baxter_core_msgs::EndpointState getEndPointStateFromTopic(std::string right_left);
-  geometry_msgs::Pose getEePoseFromTopic(std::string right_left);
-  geometry_msgs::Twist getEeTwistFromTopic(std::string right_left);
-  geometry_msgs::Wrench getEeWrenchFromTopic(std::string right_left);
+  //       at the beginning of your program you must have the following lines:
+  //         ros::init(argc, argv, "ur_node_name");
+  //         ros::NodeHandle node_handle("~");
+  baxter_core_msgs::EndpointState getEndPointStateFromTopic(std::string right_left, ros::NodeHandle &nh);
+  geometry_msgs::Pose getEePoseFromTopic(std::string right_left, ros::NodeHandle &nh);
+  geometry_msgs::Twist getEeTwistFromTopic(std::string right_left, ros::NodeHandle &nh);
+  geometry_msgs::Wrench getEeWrenchFromTopic(std::string right_left, ros::NodeHandle &nh);
 
   //brief: Functions to get the arm joints position, velocity, effort
-  sensor_msgs::JointState getBothArmJointValFromTopic(std::string right_left);
+  //       at the beginning of your program you must have the following lines:
+  //         ros::init(argc, argv, "ur_node_name");
+  //         ros::NodeHandle node_handle("~");
+  sensor_msgs::JointState getBothArmJointValFromTopic(std::string right_left, ros::NodeHandle &nh);
   //One arm only!
-  std::vector<double> getOneArmJointPositionFromTopic(std::string right_left);
-  std::vector<double> getOneArmJointVelocityFromTopic(std::string right_left);
-  std::vector<double> getOneArmJointEffortFromTopic(std::string right_left);
+  std::vector<double> getOneArmJointPositionFromTopic(std::string right_left, ros::NodeHandle &nh);
+  std::vector<double> getOneArmJointVelocityFromTopic(std::string right_left, ros::NodeHandle &nh);
+  std::vector<double> getOneArmJointEffortFromTopic(std::string right_left, ros::NodeHandle &nh);
   //Both arms (left joints before - right joints after in the vector)
-  std::vector<double> getBothArmJointPositionFromTopic(void);
-  std::vector<double> getBothArmJointVelocityFromTopic(void);
-  std::vector<double> getBothArmJointEffortFromTopic(void);
+  std::vector<double> getBothArmJointPositionFromTopic(ros::NodeHandle &nh);
+  std::vector<double> getBothArmJointVelocityFromTopic(ros::NodeHandle &nh);
+  std::vector<double> getBothArmJointEffortFromTopic(ros::NodeHandle &nh);
 
 
 
@@ -222,6 +246,7 @@ namespace obj_functions
   //brief: Function to get the joint names
   std::vector<std::string> getJointNames(moveit::planning_interface::MoveGroup& obj);
 
+  /* MOVEIT ERROR
   //brief: Function to get the current joint values of a specific arm or both, the default is all the joints values
   std::vector<double> getCurrentArmJointValues(moveit::planning_interface::MoveGroup& obj, std::string r_l_single = generic_str);
 
@@ -233,6 +258,7 @@ namespace obj_functions
 
   //brief: Function to get the current orientation in RPY of a specific gripper, the default gripper is the right one
   geometry_msgs::Vector3 getCurrentGripperRPY(moveit::planning_interface::MoveGroup& obj, std::string left_right);
+  */
 
   //brief: Function to define the Work Space Box
   //       This function has to be used when the planning frame is the world ("/world").
