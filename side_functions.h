@@ -122,6 +122,11 @@ namespace moveit_side_functions
   //       If you do not want to arrange the angle in to interval (-pi ; pi] change turn_corr to false
   geometry_msgs::Quaternion RPY2Quat(geometry_msgs::Vector3 RPY, bool RPY_rad = true, bool turn_corr = true);
 
+  //brief: Function to shift a frame respect to another | the axis orientation is the same in every frame
+  geometry_msgs::Vector3 FrameShift(geometry_msgs::Vector3 Point2newFrame, geometry_msgs::Vector3 NewFramePosition);
+  //brief: Specific FrameShift for the competition
+  geometry_msgs::Vector3 FrameShift(geometry_msgs::Vector3 Point2newFrame);
+
   //brief: Function to make a Pose message from quaternions
   geometry_msgs::Pose makePose(geometry_msgs::Quaternion orientation, geometry_msgs::Vector3 XYZ_location);
   //brief: Function to make a Pose message from eulerian angles in degree
@@ -194,13 +199,20 @@ namespace moveit_basics_functions
   moveit_msgs::CollisionObject collision_obj_generator(std::string id_collision_obj, geometry_msgs::Vector3 position, geometry_msgs::Quaternion quat,
 		  double height, double radius, std::string solid_type = "CYLINDER", std::string header_frame_id = std_head_frame);
 
-  /* TO FINISH!
   //brief: Function to generate a collision object (BOX) -- Using RPY in degree
   //       define the position of the solid by the the centre of the solid base instead of the centre of the whole solid
-  //       in "collision_obj_generator" the solid position is defined by the centre of it.
-  moveit_msgs::CollisionObject collision_obj_generator_z(std::string id_collision_obj, geometry_msgs::Vector3 position, geometry_msgs::Vector3 orientation,
+  //       in "collision_obj_generator" the solid position is defined by the centre of it. No rotation along the z_solid_axis
+  //       WARNING: DO NOT ROTATE ON X AND Y TOGETHER, it shift the base a bit
+  moveit_msgs::CollisionObject collision_obj_generator_z(std::string id_collision_obj, geometry_msgs::Vector3 positionCentreBase, geometry_msgs::Vector3 orientation,
 		  geometry_msgs::Vector3 dimension, std::string solid_type = "BOX", std::string header_frame_id = std_head_frame);
-  */
+  //brief: same as the previous one, but for CYLINDER and CONE.
+  moveit_msgs::CollisionObject collision_obj_generator_z(std::string id_collision_obj, geometry_msgs::Vector3 positionCentreBase, geometry_msgs::Vector3 orientation,
+		  double height, double radius, std::string solid_type = "CYLINDER", std::string header_frame_id = std_head_frame);
+
+  //brief: Function to generate an empty box opened, it can be rotated only on the z_axis
+  std::vector<moveit_msgs::CollisionObject> CollisionEmptyBox(std::string id_emptyBox, geometry_msgs::Vector3 dimension, double thickness, geometry_msgs::Vector3 position, double z_rotation);
+  //Comment on the object generator: Using different id_name is really important!
+  //                      			 Two object with the same id_name cannot exist! (overwritten)
 
   //brief: Functions to get the Endpoint State, Pose, Twist, Wrench
   //       at the beginning of your program you must have the following lines:
@@ -289,6 +301,13 @@ namespace obj_functions
   //       If you want to set the default tolerance do not put any tolerance value
   bool setEePositionTolerance(moveit::planning_interface::MoveGroup& obj, double toll = baxter_def_pos_toll);
 
+  //brief: Function to sum all the constraints already defined in one big data to pass to the function "setConstraint"
+  //       Orientation check the function "orient_constr_definition"
+  //	   You must generate a data "moveit_msgs::Constraints data_name" in your main
+  void Constraints_definition(moveit_msgs::Constraints &constraints, moveit_msgs::OrientationConstraint or_con);
+  //       Position (not very usefull)
+  void Constraints_definition(moveit_msgs::Constraints &constraints, moveit_msgs::PositionConstraint pos_con);
+
   //brief: Function to set constraints
   bool setConstraint(moveit::planning_interface::MoveGroup& obj, moveit_msgs::Constraints constraint);
 
@@ -320,9 +339,13 @@ namespace obj_functions
 
   //brief: Function to add an object to the scene
   bool addObject(moveit::planning_interface::PlanningSceneInterface &interface, moveit_msgs::CollisionObject &coll_obj);
+  //brief: The same but used for more than one object clustered in a vector
+  bool addObject(moveit::planning_interface::PlanningSceneInterface &interface, std::vector<moveit_msgs::CollisionObject> &coll_obj);
 
   //brief: Function to remove an object to the scene
   bool removeObject(moveit::planning_interface::PlanningSceneInterface &interface, moveit_msgs::CollisionObject &coll_obj);
+  //brief: The same but used for more than one object clustered in a vector
+  bool removeObject(moveit::planning_interface::PlanningSceneInterface &interface, std::vector<moveit_msgs::CollisionObject> &coll_obj);
 
   //brief: Function to attach a specific object to a moveit group
   //       obj_id = obj_in_the_scene.id

@@ -152,6 +152,34 @@ namespace moveit_side_functions
 	  return Quat;
   }
 
+  geometry_msgs::Vector3 FrameShift(geometry_msgs::Vector3 Point2newFrame, geometry_msgs::Vector3 NewFramePosition)
+  {
+	  geometry_msgs::Vector3 new_coordinates;
+	  new_coordinates.x = Point2newFrame.x + NewFramePosition.x;
+	  new_coordinates.y = Point2newFrame.y + NewFramePosition.y;
+	  new_coordinates.z = Point2newFrame.z + NewFramePosition.z;
+
+	  return new_coordinates;
+  }
+  geometry_msgs::Vector3 FrameShift(geometry_msgs::Vector3 Point2newFrame)
+  {
+	  geometry_msgs::Vector3 new_coordinates;
+
+	  //NewFramePosition is the position of the centre of the bexter frame respect to the /world frame
+	  //Calibrate using the hand position
+	  geometry_msgs::Vector3 NewFramePosition;
+	  NewFramePosition.x = 0.0;
+	  NewFramePosition.y = 0.0;
+	  NewFramePosition.z = -1.1;
+
+	  new_coordinates.x = Point2newFrame.x + NewFramePosition.x;
+	  new_coordinates.y = Point2newFrame.y + NewFramePosition.y;
+	  new_coordinates.z = Point2newFrame.z + NewFramePosition.z;
+
+	  return new_coordinates;
+  }
+
+
   geometry_msgs::Pose makePose(geometry_msgs::Quaternion orientation, geometry_msgs::Vector3 XYZ_location)
   {
     geometry_msgs::Pose pose;
@@ -526,24 +554,84 @@ namespace moveit_basics_functions
   	  return collision_object;
    }
 
-  /* TO FINISH!
-  moveit_msgs::CollisionObject collision_obj_generator_z(std::string id_collision_obj, geometry_msgs::Vector3 position, geometry_msgs::Vector3 orientation, geometry_msgs::Vector3 dimension, std::string solid_type, std::string header_frame_id)
+  //Collision object generator: BOX -- Using RPY in degree position defined in the centre of the base
+  moveit_msgs::CollisionObject collision_obj_generator_z(std::string id_collision_obj, geometry_msgs::Vector3 positionCentreBase, geometry_msgs::Vector3 orientation, geometry_msgs::Vector3 dimension, std::string solid_type, std::string header_frame_id)
   {
-	  geometry_msgs::Vector3 position_new = position;
-	  double ori_x = orientation.x;
-	  double ori_y = orientation.y;
+	  namespace msf = moveit_side_functions;
 
-	  //definition of the centre of the solid
-	  double x = position.x + (sin(ori_y) * dimension.z/2);
-	  double y = position.y + (sin(ori_x) * dimension.z/2);
-	  double z = position.z + (cos(ori_x) * cos(ori_y) * dimension.z/2);
-	  position_new.x = x; position_new.y = y; position_new.z = z;
+	  geometry_msgs::Vector3 z_moveit_position = positionCentreBase;
 
-	  moveit_msgs::CollisionObject collision_object = collision_obj_generator(id_collision_obj, position_new, orientation, dimension, solid_type, header_frame_id);
+	  z_moveit_position.x += + dimension.z/2 * sin(msf::deg2rad(orientation.y));
+	  z_moveit_position.y += - dimension.z/2 * sin(msf::deg2rad(orientation.x));
+	  z_moveit_position.z += + dimension.z/2 * cos(msf::deg2rad(orientation.x)) * cos(msf::deg2rad(orientation.y));
+
+	  moveit_msgs::CollisionObject collision_object = collision_obj_generator(id_collision_obj, z_moveit_position, orientation, dimension, solid_type, header_frame_id);
 
    	  return collision_object;
   }
-  */
+  //Collision object generator: CYLINDER or CONE -- Using RPY in degree position defined in the centre of the base
+  moveit_msgs::CollisionObject collision_obj_generator_z(std::string id_collision_obj, geometry_msgs::Vector3 positionCentreBase, geometry_msgs::Vector3 orientation, double height, double radius, std::string solid_type, std::string header_frame_id)
+  {
+	  namespace msf = moveit_side_functions;
+
+	  geometry_msgs::Vector3 z_moveit_position = positionCentreBase;
+
+	  z_moveit_position.x += + height/2 * sin(msf::deg2rad(orientation.y));
+	  z_moveit_position.y += - height/2 * sin(msf::deg2rad(orientation.x));
+	  z_moveit_position.z += + height/2 * cos(msf::deg2rad(orientation.x)) * cos(msf::deg2rad(orientation.y));
+
+	  moveit_msgs::CollisionObject collision_object = collision_obj_generator(id_collision_obj, z_moveit_position, orientation, height, radius, solid_type, header_frame_id);
+
+   	  return collision_object;
+  }
+
+  std::vector<moveit_msgs::CollisionObject> CollisionEmptyBox(std::string id_emptyBox, geometry_msgs::Vector3 dimension, double thickness, geometry_msgs::Vector3 position, double z_rotation)
+  {
+	  double rot_rad = moveit_side_functions::deg2rad(z_rotation);
+	  //Bottom creation
+	  geometry_msgs::Vector3 dim;
+	  dim.x = dimension.x; dim.y = dimension.y; dim.z = thickness;
+	  geometry_msgs::Vector3 orientation;
+	  orientation.x = 0.0; orientation.y = 0.0; orientation.z = z_rotation;
+	  geometry_msgs::Vector3 pos = position;
+	  std::string part_name;
+	  part_name = id_emptyBox + "_bottom";
+	  moveit_msgs::CollisionObject bottom = collision_obj_generator_z(part_name, pos, orientation, dim);
+
+	  //side 1 and 3 creation
+	  dim.x = dimension.x; dim.y = thickness; dim.z = dimension.z;
+	  pos.x = position.x + ((dimension.y - thickness)/2) * sin(rot_rad);
+	  pos.y = position.y + ((dimension.y - thickness)/2) * cos(rot_rad);
+	  pos.z = position.z + dimension.z/2;
+	  part_name = id_emptyBox + "_side1";
+	  moveit_msgs::CollisionObject side1 = collision_obj_generator(part_name, pos, orientation, dim);
+	  pos.x = position.x + ((dimension.y - thickness)/2) * sin(rot_rad);
+	  pos.y = position.y - ((dimension.y - thickness)/2) * cos(rot_rad);
+	  part_name = id_emptyBox + "_side3";
+	  moveit_msgs::CollisionObject side3 = collision_obj_generator(part_name, pos, orientation, dim);
+
+	  //side 2 and 4 creation
+	  dim.x = thickness; dim.y = dimension.y; dim.z = dimension.z;
+	  pos.x = position.x + ((dimension.x - thickness)/2) * cos(rot_rad);
+	  pos.y = position.y + ((dimension.x - thickness)/2) * sin(rot_rad);
+	  pos.z = position.z + dimension.z/2;
+	  part_name = id_emptyBox + "_side2";
+	  moveit_msgs::CollisionObject side2 = collision_obj_generator(part_name, pos, orientation, dim);
+	  pos.x = position.x - ((dimension.x - thickness)/2) * cos(rot_rad);
+	  pos.y = position.y + ((dimension.x - thickness)/2) * sin(rot_rad);
+	  part_name = id_emptyBox + "_side4";
+	  moveit_msgs::CollisionObject side4 = collision_obj_generator(part_name, pos, orientation, dim);
+
+	  std::vector<moveit_msgs::CollisionObject> box_vector;
+	  box_vector.push_back(bottom);
+	  box_vector.push_back(side1);
+	  box_vector.push_back(side2);
+	  box_vector.push_back(side3);
+	  box_vector.push_back(side4);
+
+	  return box_vector;
+
+  }
 
 
   //Callback for the end-effector endpoint state (position, twist, wrench) | global variable
@@ -1043,6 +1131,16 @@ namespace obj_functions
 	  return success;
   }
 
+  //Ne effective check
+  void Constraints_definition(moveit_msgs::Constraints &constraints, moveit_msgs::OrientationConstraint or_con)
+  {
+	  constraints.orientation_constraints.push_back(or_con);
+  }
+  void Constraints_definition(moveit_msgs::Constraints &constraints, moveit_msgs::PositionConstraint pos_con)
+  {
+	  constraints.position_constraints.push_back(pos_con);
+  }
+
   //-- effective check
   bool setConstraint(moveit::planning_interface::MoveGroup& obj, moveit_msgs::Constraints constraint)
   {
@@ -1137,6 +1235,18 @@ namespace obj_functions
 
 	  return true;
   }
+  bool addObject(moveit::planning_interface::PlanningSceneInterface &interface, std::vector<moveit_msgs::CollisionObject> &coll_obj)
+    {
+	  int size = coll_obj.size();
+	  for(int i = 0; i < size; i++)
+	  {
+	  	  coll_obj[i].operation = moveit_msgs::CollisionObject::ADD;
+	  	  interface.applyCollisionObject(coll_obj[i]);
+	  }
+
+  	  return true;
+    }
+
 
   //NO effective check
   bool removeObject(moveit::planning_interface::PlanningSceneInterface &interface, moveit_msgs::CollisionObject &coll_obj)
@@ -1146,6 +1256,18 @@ namespace obj_functions
 
 	  return true;
   }
+  bool removeObject(moveit::planning_interface::PlanningSceneInterface &interface, std::vector<moveit_msgs::CollisionObject> &coll_obj)
+    {
+	  int size = coll_obj.size();
+	  for(int i = 0; i < size; i++)
+	  {
+	  	  coll_obj[i].operation = moveit_msgs::CollisionObject::REMOVE;
+	  	  interface.applyCollisionObject(coll_obj[i]);
+	  }
+
+  	  return true;
+    }
+
 
   //NO effective check (partial check on the link name)
   bool attachObj2group(moveit::planning_interface::MoveGroup& group, std::string obj_id, std::string link_id,  double time2wait)
