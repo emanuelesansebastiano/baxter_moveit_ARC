@@ -44,7 +44,7 @@
 #define exit_finction_time			0.5 //[sec]
 //Moveit! values
 #define att_exit					5 //maximum # moveit planner attempts
-#define time_exit					6.0 //maximum time value moveit planner can use
+#define time_exit					12.0 //maximum time value moveit planner can use
 //The following define structures could change according to the robot
 #define	generic_str					""
 //Baxter default values
@@ -210,13 +210,16 @@ namespace moveit_basics_functions
 		  double height, double radius, std::string solid_type = "CYLINDER", std::string header_frame_id = std_head_frame);
 
   //brief: Function to generate an empty box opened, it can be rotated only on the z_axis
+  //       the variable "dimension" corresponds to the empty space inside the box,
+  //       the out-side dimension are the inside dimension plus the thickness of the box material.
+  //       The bottom of the box has a fixed layer of 0.01 [m] | open the cpp file if you want to change it.
   std::vector<moveit_msgs::CollisionObject> CollisionEmptyBox(std::string id_emptyBox, geometry_msgs::Vector3 dimension, double thickness, geometry_msgs::Vector3 position, double z_rotation);
   //Comment on the object generator: Using different id_name is really important!
   //                      			 Two object with the same id_name cannot exist! (overwritten)
 
   //brief: Functions to get the Endpoint State, Pose, Twist, Wrench
   //       at the beginning of your program you must have the following lines:
-  //         ros::init(argc, argv, "ur_node_name");
+  //         ros::init(argc, argv, "your_node_name");
   //         ros::NodeHandle node_handle("~");
   baxter_core_msgs::EndpointState getEndPointStateFromTopic(std::string right_left, ros::NodeHandle &nh);
   geometry_msgs::Pose getEePoseFromTopic(std::string right_left, ros::NodeHandle &nh);

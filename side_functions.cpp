@@ -589,8 +589,9 @@ namespace moveit_basics_functions
   {
 	  double rot_rad = moveit_side_functions::deg2rad(z_rotation);
 	  //Bottom creation
+	  double bottom_thickness = 0.01;
 	  geometry_msgs::Vector3 dim;
-	  dim.x = dimension.x; dim.y = dimension.y; dim.z = thickness;
+	  dim.x = dimension.x; dim.y = dimension.y; dim.z = bottom_thickness;
 	  geometry_msgs::Vector3 orientation;
 	  orientation.x = 0.0; orientation.y = 0.0; orientation.z = z_rotation;
 	  geometry_msgs::Vector3 pos = position;
@@ -599,26 +600,26 @@ namespace moveit_basics_functions
 	  moveit_msgs::CollisionObject bottom = collision_obj_generator_z(part_name, pos, orientation, dim);
 
 	  //side 1 and 3 creation
-	  dim.x = dimension.x; dim.y = thickness; dim.z = dimension.z;
-	  pos.x = position.x + ((dimension.y - thickness)/2) * sin(rot_rad);
-	  pos.y = position.y + ((dimension.y - thickness)/2) * cos(rot_rad);
+	  dim.x = dimension.x + 2*thickness; dim.y = thickness; dim.z = dimension.z;
+	  pos.x = position.x - ((dimension.y + thickness)/2) * sin(rot_rad);
+	  pos.y = position.y + ((dimension.y + thickness)/2) * cos(rot_rad);
 	  pos.z = position.z + dimension.z/2;
 	  part_name = id_emptyBox + "_side1";
 	  moveit_msgs::CollisionObject side1 = collision_obj_generator(part_name, pos, orientation, dim);
-	  pos.x = position.x + ((dimension.y - thickness)/2) * sin(rot_rad);
-	  pos.y = position.y - ((dimension.y - thickness)/2) * cos(rot_rad);
+	  pos.x = position.x + ((dimension.y + thickness)/2) * sin(rot_rad);
+	  pos.y = position.y - ((dimension.y + thickness)/2) * cos(rot_rad);
 	  part_name = id_emptyBox + "_side3";
 	  moveit_msgs::CollisionObject side3 = collision_obj_generator(part_name, pos, orientation, dim);
 
 	  //side 2 and 4 creation
-	  dim.x = thickness; dim.y = dimension.y; dim.z = dimension.z;
-	  pos.x = position.x + ((dimension.x - thickness)/2) * cos(rot_rad);
-	  pos.y = position.y + ((dimension.x - thickness)/2) * sin(rot_rad);
+	  dim.x = thickness; dim.y = dimension.y + 2*thickness; dim.z = dimension.z;
+	  pos.x = position.x + ((dimension.x + thickness)/2) * cos(rot_rad);
+	  pos.y = position.y + ((dimension.x + thickness)/2) * sin(rot_rad);
 	  pos.z = position.z + dimension.z/2;
 	  part_name = id_emptyBox + "_side2";
 	  moveit_msgs::CollisionObject side2 = collision_obj_generator(part_name, pos, orientation, dim);
-	  pos.x = position.x - ((dimension.x - thickness)/2) * cos(rot_rad);
-	  pos.y = position.y + ((dimension.x - thickness)/2) * sin(rot_rad);
+	  pos.x = position.x - ((dimension.x + thickness)/2) * cos(rot_rad);
+	  pos.y = position.y - ((dimension.x + thickness)/2) * sin(rot_rad);
 	  part_name = id_emptyBox + "_side4";
 	  moveit_msgs::CollisionObject side4 = collision_obj_generator(part_name, pos, orientation, dim);
 
@@ -632,7 +633,6 @@ namespace moveit_basics_functions
 	  return box_vector;
 
   }
-
 
   //Callback for the end-effector endpoint state (position, twist, wrench) | global variable
   void callback_Ee(const baxter_core_msgs::EndpointState data){
@@ -1160,7 +1160,9 @@ namespace obj_functions
   //YES effective check
   bool plan_execute_safely(moveit::planning_interface::MoveGroup& obj)
   {
-	  bool success;
+	  ros::AsyncSpinner temp_spinner(1);
+	  temp_spinner.start();
+	  bool success = false;
 	  moveit::planning_interface::MoveGroup::Plan my_plan;
 	  success = obj.plan(my_plan);
 	  if(success)
@@ -1168,6 +1170,7 @@ namespace obj_functions
 	  else
 	    std::cout << "Something went wrong during planning!" << std::endl;
 
+	  temp_spinner.stop();
 	  return success;
   }
 
@@ -1186,8 +1189,10 @@ namespace obj_functions
 		  }
 	  }
 	  //restore the previous value
-	  if(initial_curr_time != curr_time && restore_initial)
+	  if(initial_curr_time != curr_time && restore_initial){
+		  std::cout << "Current planning time has been set back to: " << initial_curr_time << std::endl;
 		  setPlanningTime(obj, initial_curr_time);
+	  }
 
 	  return success;
   }
@@ -1216,7 +1221,10 @@ namespace obj_functions
   //NO effective check
   void move_direct(moveit::planning_interface::MoveGroup& obj)
   {
+	  ros::AsyncSpinner temp_spinner(1);
+	  temp_spinner.start();
 	  obj.move();
+	  temp_spinner.stop();
   }
 
   //NO effective check
