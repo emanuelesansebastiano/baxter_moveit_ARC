@@ -585,7 +585,7 @@ namespace moveit_basics_functions
    	  return collision_object;
   }
 
-  std::vector<moveit_msgs::CollisionObject> CollisionEmptyBox(std::string id_emptyBox, geometry_msgs::Vector3 dimension, double thickness, geometry_msgs::Vector3 position, double z_rotation)
+  std::vector<moveit_msgs::CollisionObject> CollisionEmptyBox(std::string id_emptyBox, geometry_msgs::Vector3 position, geometry_msgs::Vector3 dimension, double z_rotation, double thickness)
   {
 	  double rot_rad = moveit_side_functions::deg2rad(z_rotation);
 	  //Bottom creation

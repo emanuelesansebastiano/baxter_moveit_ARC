@@ -65,7 +65,8 @@
 #define baxter_def_pos_toll 		0.0001		//[rad]
 #define baxter_attempts				1
 #define baxter_max_factor			1.0
-
+//scene values
+#define std_thickness				0.02		//[m]
 
 //brief: Function defining the joints names in your Robot | user can change the joints names
 std::vector<std::string> joint_names(void)
@@ -124,7 +125,7 @@ namespace moveit_side_functions
 
   //brief: Function to shift a frame respect to another | the axis orientation is the same in every frame
   geometry_msgs::Vector3 FrameShift(geometry_msgs::Vector3 Point2newFrame, geometry_msgs::Vector3 NewFramePosition);
-  //brief: Specific FrameShift for the competition
+  //brief: Specific FrameShift for the competition ARC-2017
   geometry_msgs::Vector3 FrameShift(geometry_msgs::Vector3 Point2newFrame);
 
   //brief: Function to make a Pose message from quaternions
@@ -213,7 +214,7 @@ namespace moveit_basics_functions
   //       the variable "dimension" corresponds to the empty space inside the box,
   //       the out-side dimension are the inside dimension plus the thickness of the box material.
   //       The bottom of the box has a fixed layer of 0.01 [m] | open the cpp file if you want to change it.
-  std::vector<moveit_msgs::CollisionObject> CollisionEmptyBox(std::string id_emptyBox, geometry_msgs::Vector3 dimension, double thickness, geometry_msgs::Vector3 position, double z_rotation);
+  std::vector<moveit_msgs::CollisionObject> CollisionEmptyBox(std::string id_emptyBox, geometry_msgs::Vector3 position, geometry_msgs::Vector3 dimension, double z_rotation = 0.0, double thickness = std_thickness);
   //Comment on the object generator: Using different id_name is really important!
   //                      			 Two object with the same id_name cannot exist! (overwritten)
 
