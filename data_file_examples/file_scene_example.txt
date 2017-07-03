@@ -1,0 +1,32 @@
+% comments must be written as this line %
+
+% File used by the function 'moveit_basics_functions::readCollisionObj' contained in the library 'side_functions.h' %
+
+% Do not forget to separate every value using the TAB (char '\b') %
+% everything is related to the base of the salid, except for the SPHERE %
+% KIND	obj_id	values %
+
+% BOX		ob_id	pos.x	pos.y	pos.z	ori.x	ori.y	ori.z	dim.x	dim.y	dim.z	%	
+% SPHERE	ob_id	pos.x	pos.y	pos.z	radius 						%
+% CYLINDER	ob_id	pos.x	pos.y	pos.x	ori.y	ori.z	ori.z	height	radius		%
+% CONE		ob_id	pos.x	pos.y	pos.z	ori.x	ori.y	ori.z	height	radius		%
+% EMPTY_BOX	ob_id	pos.x	pos.y	pos.z	dim.x	dim.y	dim.z	ori.z	thickness	%
+
+% pos = position [m] %
+% ori = orientation [deg] %
+% dim = dimension [m] %
+% if you want to use the default thickness write a value <= 0.0 %
+
+BOX	box_test1	-1.0	1.0	0.0	0.0	0.0	0.0	0.1	0.2	0.3	
+SPHERE	sphere_test1	1.0	-1.0	1.0	0.3 						
+CYLINDER	cyinder_test1	1.0	0.0	-1.0	0.0	0.0	0.0	0.4	1.0	
+CONE	cone_test1	1.0	0.0	1.0	0.0	0.0	0.0	0.1	0.5	
+EMPTY_BOX	e_box_test1	0.0	1.0	1.0	0.1	0.2	0.3	90.0	0.1
+
+% other objects %
+
+SPHERE	sphere_test2	2.0	-1.0	1.0	0.3 						
+CONE	cone_test2	-1.0	0.0	1.0	0.0	0.0	0.0	0.2	0.7	
+EMPTY_BOX	e_box_test2	0.5	1.0	1.0	0.1	0.2	0.3	90.0	-1.0
+
+
