@@ -12,10 +12,12 @@
 #include <sys/time.h>
 
 // C++
-#include <geometry_msgs/PoseStamped.h>
-#include <geometry_msgs/Vector3.h>
-#include <boost/math/constants/constants.hpp>
 #include <fstream>
+#include <geometry_msgs/Vector3.h>
+#include <geometry_msgs/PoseStamped.h>
+#include <boost/math/constants/constants.hpp>
+#include <tf/transform_listener.h>
+#include <tf_conversions/tf_kdl.h>
 
 // Moveit! libraries
 #include <moveit_msgs/OrientationConstraint.h>
@@ -36,7 +38,7 @@
 // Common define values
 #define	std_time					0.01
 #define	stdAttempts4booleanFunc		5
-#define exit_finction_time			0.5 //[sec]
+#define exit_function_time			0.5 //[sec]
 #define newline_char				'\n'
 #define tab_char					'\t'
 #define comment_char				'%'
@@ -46,13 +48,14 @@
 //The following define structures could change according to the robot
 #define	generic_str					""
 //Baxter default values
-//DO NOT MODIFY THESE VALUES, except if it is strickly necessary!
+//DO NOT MODIFY THESE VALUES, except if it is strictly necessary!
 #define right_def					"right"
 #define left_def					"left"
 #define gripper_def					"_gripper"
 #define	std_head_frame				"/world"
 #define arm_group_name				"_arm"
 #define both_arms_group_name		"both_arms"
+#define tf_tree_starter_name		"torso"
 //baxter topic defintion
 #define joint_state					"/robot/joint_states"
 #define base_robot_part				"/robot/limb/"
@@ -67,10 +70,12 @@
 #define std_thickness				0.02		//[m]
 
 
-//brief: Function defining the joints names in your Robot | user can change the joints names
+//brief: Function defining the joint names in your Robot | user can change the joints names
+//       In case you receive errors or it is not complete, use the function 'obj_functions::getJointNames()' to check it
 std::vector<std::string> joint_names()
 {
-	//Just modify the following line if strickly necessary
+	//Just modify the following line if strictly necessary
+	//Check '#define tf_tree_starter_name' definition
 	const std::string joints_names [] = {"_s0", "_s1", "_e0", "_e1", "_w0", "_w1", "_w2"};
 	std::vector<std::string> j_n;
 	j_n.resize(sizeof(joints_names)/sizeof(*joints_names));
@@ -80,10 +85,24 @@ std::vector<std::string> joint_names()
 	return j_n;
 }
 
+//brief: Function defining the link names in your Robot | user can change the link names
+//       In case you receive errors or it is not complete, use the function 'obj_functions::getLinkNames()' to check it
+std::vector<std::string> link_names()
+{
+	//Just modify the following line if strictly necessary
+	const std::string links_names [] = {"_upper_shoulder", "_lower_shoulder", "_upper_elbow", "_lower_elbow", "_upper_forearm", "_lower_forearm", "_hand", "_gripper_base", "_gripper"};
+	std::vector<std::string> l_n;
+	l_n.resize(sizeof(links_names)/sizeof(*links_names));
+	for(int i = 0; i < l_n.size(); i++)
+		l_n[i] = links_names[i];
+
+	return l_n;
+}
+
 //////////////////////////////////////////////////////////////////////////////////////
 
 /*HOW TO USE THIS LIBRARY
-   At the top of you program you must insert the following lines:
+   At the beginning of you program you must insert the following lines:
  * 	ros::init(argc, argv, "your_node_name");
  *	ros::NodeHandle node_handle("~");
  *	ros::AsyncSpinner spinner(1);
@@ -121,6 +140,15 @@ namespace moveit_side_functions
   //brief: Function to cluster to vector in one vector
   std::vector<double> vector_two_cluster(std::vector<double> left, std::vector<double> right);
 
+  //brief: Set of function to Sum or Subtract two matrixes having 2 or 3 dimensions
+  bool matrix2DSUM(std::vector <std::vector<double> > mA, std::vector <std::vector<double> > mB, std::vector <std::vector<double> > &mRes);
+  bool matrix2DSUBTRACTION(std::vector <std::vector<double> > mA, std::vector <std::vector<double> > mB, std::vector <std::vector<double> > &mRes);
+  bool matrix3DSUM(std::vector<std::vector <std::vector<double> > > mA, std::vector<std::vector <std::vector<double> > > mB, std::vector<std::vector <std::vector<double> > > &mRes);
+  bool matrix3DSUBTRACTION(std::vector<std::vector <std::vector<double> > > mA, std::vector<std::vector <std::vector<double> > > mB, std::vector<std::vector <std::vector<double> > > &mRes);
+
+  //brief: Function to make the product of two 2D matrixes defined as vector of vectors of double
+  bool matrix2Dprod(std::vector <std::vector <double> > mA, std::vector <std::vector<double> > mB, std::vector <std::vector<double> > &mProd);
+
   //brief: Make a Vector3 data in just one line
   geometry_msgs::Vector3 makeVector3(double x, double y, double z);
 
@@ -128,14 +156,26 @@ namespace moveit_side_functions
   geometry_msgs::Quaternion makeQuat(double w, double x, double y, double z);
 
   //brief: Function to convert RPY to quaternion angles
-  //       If RPY has no radiant unit change RPY_rad to false
+  //       If RPY is NOT in radiant unit change RPY_rad to false
   //       If you do not want to arrange the angle in to interval (-pi ; pi] change turn_corr to false
   geometry_msgs::Quaternion RPY2Quat(geometry_msgs::Vector3 RPY, bool RPY_rad = true, bool turn_corr = true);
+
+  //brief: Function to convert quaternion into RPY angles
+  //       If you want RPY NOT in radiant unit change RPY_rad to false
+  geometry_msgs::Vector3 Quat2RPY(geometry_msgs::Quaternion Quat, bool RPY_rad = true);
 
   //brief: Function to shift a frame respect to another | the axis orientation is the same in every frame
   geometry_msgs::Vector3 FrameShift(geometry_msgs::Vector3 Point2newFrame, geometry_msgs::Vector3 NewFramePosition);
   //brief: Specific FrameShift for the competition ARC-2017
   geometry_msgs::Vector3 FrameShift(geometry_msgs::Vector3 Point2newFrame);
+
+  //brief: Function to convert easily a Vector3 data into a Pose.position data
+  void vector32posePosition(geometry_msgs::Vector3 vector, geometry_msgs::Pose &pose2update);
+  void vector32posePosition(geometry_msgs::Vector3 vector, geometry_msgs::PoseStamped &poseStamped2update);
+
+  //brief: Function to convert easily a Pose.position data into a Vector3 data
+  void posePosition2vector3(geometry_msgs::Pose pose, geometry_msgs::Vector3 &vector2update);
+  void posePosition2vector3(geometry_msgs::PoseStamped poseStamped, geometry_msgs::Vector3 &vector2update);
 
   //brief: Function to make a Pose message from quaternions
   geometry_msgs::Pose makePose(geometry_msgs::Quaternion orientation, geometry_msgs::Vector3 XYZ_location);
@@ -144,9 +184,13 @@ namespace moveit_side_functions
 
   //brief: Convert a Pose data to a PoseStamped data
   geometry_msgs::PoseStamped Pose2PoseStamped( geometry_msgs::Pose old_pose);
+  //brief: Convert a Pose vector to a PoseStamped vector
+  std::vector<geometry_msgs::PoseStamped> Pose2PoseStamped( std::vector<geometry_msgs::Pose> old_pose);
 
   //brief: Convert a PoseStamped data to a Pose data
   geometry_msgs::Pose PoseStamped2Pose( geometry_msgs::PoseStamped old_pose_s);
+  //brief: Convert a PoseStamped vector to a Pose vector
+  std::vector<geometry_msgs::Pose> PoseStamped2Pose( std::vector<geometry_msgs::PoseStamped> old_pose_s);
 
   //brief: This function returns the sum of the absolute difference of every term of two quaternions
   double Quat_diff(geometry_msgs::Quaternion a, geometry_msgs::Quaternion b);
@@ -155,12 +199,12 @@ namespace moveit_side_functions
   //       'decimal_considered' is the number of decimals you want to consider - negative values mean 'all the available values'
   bool PoseEquivalence_decimal_value(geometry_msgs::Pose A, geometry_msgs::Pose B, int decimal_considered = -1);
 
-  //brief: This function compares two poses by a threshold
+  //brief: This function compares two poses by a threshold (true output if the values are equivalent)
   //       Pose.position check
   bool PoseEquivalence_XYZ(geometry_msgs::Pose A, geometry_msgs::Pose B, double threshold_XYZ = 0.0);
   //       Pose.orientation check
   bool PoseEquivalence_Quat(geometry_msgs::Pose A, geometry_msgs::Pose B, double threshold_Quat = 0.0);
-  //       Pose full checkcheck
+  //       Pose full check
   bool PoseEquivalence_theshold(geometry_msgs::Pose A, geometry_msgs::Pose B, double threshold_XYZ = 0.0, double threshold_Quat = 0.0);
 
   //brief: This function compares two vectors of double by a threshold
@@ -172,7 +216,7 @@ namespace moveit_side_functions
 // End namespace "moveit_side_functions"
 }
 
-namespace moveit_basics_functions
+namespace geometry_side_functions
 {
   //brief: Predefined vertical orientation (180.0; 0.0; 0.0)
   geometry_msgs::Vector3 vertical_orientation_x();
@@ -185,6 +229,40 @@ namespace moveit_basics_functions
   //       This function choose the closest final orientation among the two possible verticals
   geometry_msgs::Pose up_position(geometry_msgs::Pose ee_curr_pos, double curr_z = 0.0, double distance = 0.2);
 
+  //brief:: Function to easy generate point matrix representing a point in the 3D
+  std::vector <std::vector <double> > point2matrix_gen(geometry_msgs::Vector3 point);
+
+  //brief: Function to easy convert a matrix representing a point in 3D into a vector3 data
+  geometry_msgs::Vector3 matrix2point_gen(std::vector <std::vector <double> > matrix);
+
+  //brief: Function to generate the translation matrix from the translation vector
+  std::vector <std::vector <double> > translation_matrix(geometry_msgs::Vector3 translation);
+
+  //brief: Set of function to generate the rotational matrix around every single axis
+  //       this rotation corresponds to the RPY
+  //       if the angles are NOT in radiant put 'rad = false' to convert them
+  std::vector <std::vector <double> > rotational_matrix_X(double angle_X, bool rad = true);
+  std::vector <std::vector <double> > rotational_matrix_Y(double angle_Y, bool rad = true);
+  std::vector <std::vector <double> > rotational_matrix_Z(double angle_Z, bool rad = true);
+
+  //brief:: Function to generate the full rotational matrix from the RPY axis rotation
+  //	    if the angle unit is NOT radiant put 'rad = false' to convert
+  std::vector <std::vector <double> > RPY2rotMatrix(geometry_msgs::Vector3 angles, bool rad = true);
+  //brief:: Function to generate the full rotational matrix from the RPY axis rotation starting from quaternions
+  std::vector <std::vector <double> > Quaternion2rotMatrix(geometry_msgs::Quaternion quat);
+
+  //brief:: Function to extract the RPY axis rotation from the full rotational matrix
+  //	    if the angle unit you want is NOT radiant put 'rad = false' to convert
+  geometry_msgs::Vector3 rotMatrix2RPY(std::vector<std::vector <double> > matrix, bool rad = true);
+
+  //brief:: Function to extract the quaternion of the axis rotation from the full rotational matrix
+  geometry_msgs::Quaternion rotMatrix2Quaternion( std::vector <std::vector <double> > matrix);
+
+// End namespace "geometry_side_functions"
+}
+
+namespace moveit_basics_functions
+{
   //Comment: Other constraints could be set like 'PositionConstraints', but they are useless for this project.
   //         Check moveit_msgs/msg/Constraints.msg file to know more about them.
   //brief: Function to define a orientation constraint parameter from quaternions
@@ -226,8 +304,12 @@ namespace moveit_basics_functions
   //       WARNING: DO NOT ROTATE ON X AND Y TOGETHER, it shift the base a bit
   moveit_msgs::CollisionObject collision_obj_generator_z(std::string id_collision_obj, geometry_msgs::Vector3 positionCentreBase, geometry_msgs::Vector3 orientation,
 		  geometry_msgs::Vector3 dimension, std::string solid_type = "BOX", std::string header_frame_id = std_head_frame);
+  moveit_msgs::CollisionObject collision_obj_generator_z(std::string id_collision_obj, geometry_msgs::Vector3 positionCentreBase, geometry_msgs::Quaternion quat,
+		  geometry_msgs::Vector3 dimension, std::string solid_type = "BOX", std::string header_frame_id = std_head_frame);
   //brief: same as the previous one, but for CYLINDER and CONE.
   moveit_msgs::CollisionObject collision_obj_generator_z(std::string id_collision_obj, geometry_msgs::Vector3 positionCentreBase, geometry_msgs::Vector3 orientation,
+		  double height, double radius, std::string solid_type = "CYLINDER", std::string header_frame_id = std_head_frame);
+  moveit_msgs::CollisionObject collision_obj_generator_z(std::string id_collision_obj, geometry_msgs::Vector3 positionCentreBase, geometry_msgs::Quaternion quat,
 		  double height, double radius, std::string solid_type = "CYLINDER", std::string header_frame_id = std_head_frame);
 
   //brief: Function to generate an empty box opened, it can be rotated only on the z_axis
@@ -240,6 +322,10 @@ namespace moveit_basics_functions
 
   //brief: Function to read from a file a set of collision object
   std::vector<moveit_msgs::CollisionObject> readCollisionObj(std::string file_directory);
+
+  //brief: Function to get the pose of the arm frames from the /tf
+  //       The selected frames derives by the function 'link_names()', check it in case of errors
+  std::vector<geometry_msgs::PoseStamped> TF_arm_point_pose(std::string right_left);
 
   //brief: Functions to get the Endpoint State, Pose, Twist, Wrench
   //       at the beginning of your program you must have the following lines:
@@ -263,7 +349,6 @@ namespace moveit_basics_functions
   std::vector<double> getBothArmJointPositionFromTopic(ros::NodeHandle &nh);
   std::vector<double> getBothArmJointVelocityFromTopic(ros::NodeHandle &nh);
   std::vector<double> getBothArmJointEffortFromTopic(ros::NodeHandle &nh);
-
 
 // End namespace "moveit_basics_functions"
 }
@@ -390,6 +475,9 @@ namespace obj_functions
   //brief: Function to detach a specific object to a moveit group
   //       obj_id = obj_in_the_scene.id
   bool detachObj2group(moveit::planning_interface::MoveGroup& group, std::string obj_id, double time2wait = std_time);
+
+  //brief: Function to get all the objects published in the scene by Moveit!
+  std::vector<moveit_msgs::CollisionObject> GetMoveitSceneObjects(moveit::planning_interface::PlanningSceneInterface &interface);
 
   /* MOVEIT ERROR
   //brief: Function to get the current joint values of a specific arm or both, the default is all the joints values

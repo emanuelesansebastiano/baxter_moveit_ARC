@@ -85,6 +85,304 @@ namespace moveit_side_functions
 	  return final_vector;
   }
 
+  bool matrix2DSUM(std::vector <std::vector<double> > mA, std::vector <std::vector<double> > mB, std::vector <std::vector<double> > &mRes)
+  {
+	  int temp_int;
+	  mRes.clear();
+
+	  //function check
+	  //matrix size check
+	  temp_int = mA[0].size();
+	  for(int i = 0; i < mA.size(); i++)
+	  {
+		  if(mA[i].size() != temp_int){
+			  std::cout << "Error: the raws of the first matrix have NOT constant size!" << std::endl;
+			  goto return_0;
+		  }
+	  }
+	  temp_int = mB[0].size();
+	  for(int i = 0; i < mB.size(); i++)
+	  {
+		  if(mB[i].size() != temp_int){
+			  std::cout << "Error: the raws of the second matrix have NOT constant size!" << std::endl;
+			  goto return_0;
+		  }
+	  }
+	  //proper dimensions check
+	  if(mA.size() != mB.size() || mA[0].size() != mB[0].size())
+	  {
+		  std::cout << "Error: the function is trying to make the sum of matrixes having the following dimensions:" << std::endl;
+		  std::cout << mA.size() << " x " << mA[0].size() << "  and  " << mB.size() << " x " << mB[0].size() << std::endl;
+		  goto return_0;
+	  }
+
+	  //main program
+	  for(int i = 0; i < mA.size(); i++)
+	  {
+		  for(int j = 0; j < mA[0].size(); j++)
+		  {
+			  mRes[i][j] = mA[i][j] + mB[i][j];
+		  }
+	  }
+
+	  return true;
+
+	  //exit return in case something is not correct
+	  return_0:
+	  return false;
+  }
+
+  bool matrix2DSUBTRACTION(std::vector <std::vector<double> > mA, std::vector <std::vector<double> > mB, std::vector <std::vector<double> > &mRes)
+  {
+	  int temp_int;
+	  mRes.clear();
+
+	  //function check
+	  //matrix size check
+	  temp_int = mA[0].size();
+	  for(int i = 0; i < mA.size(); i++)
+	  {
+		  if(mA[i].size() != temp_int){
+			  std::cout << "Error: the raws of the first matrix have NOT constant size!" << std::endl;
+			  goto return_0;
+		  }
+	  }
+	  temp_int = mB[0].size();
+	  for(int i = 0; i < mB.size(); i++)
+	  {
+		  if(mB[i].size() != temp_int){
+			  std::cout << "Error: the raws of the second matrix have NOT constant size!" << std::endl;
+			  goto return_0;
+		  }
+	  }
+	  //proper dimensions check
+	  if(mA.size() != mB.size() || mA[0].size() != mB[0].size())
+	  {
+		  std::cout << "Error: the function is trying to make the subtraction of matrixes having the following dimensions:" << std::endl;
+		  std::cout << mA.size() << " x " << mA[0].size() << "  and  " << mB.size() << " x " << mB[0].size() << std::endl;
+		  goto return_0;
+	  }
+
+	  //main program
+	  for(int i = 0; i < mA.size(); i++)
+	  {
+		  for(int j = 0; j < mA[0].size(); j++)
+		  {
+			  mRes[i][j] = mA[i][j] - mB[i][j];
+		  }
+	  }
+
+	  return true;
+
+	  //exit return in case something is not correct
+	  return_0:
+	  return false;
+  }
+
+  bool matrix3DSUM(std::vector<std::vector <std::vector<double> > > mA, std::vector<std::vector <std::vector<double> > > mB, std::vector<std::vector <std::vector<double> > > &mRes)
+  {
+	  int temp_int;
+	  mRes.clear();
+
+	  //function check
+	  //matrix size check
+	  temp_int = mA[0].size();
+	  for(int i = 0; i < mA.size(); i++)
+	  {
+		  if(mA[i].size() != temp_int){
+			  std::cout << "Error: the raws of the first matrix have NOT constant size!" << std::endl;
+			  goto return_0;
+		  }
+	  }
+	  temp_int = mA[0][0].size();
+	  for(int i = 0; i < mA.size(); i++)
+	  {
+		  for(int j = 0; j < mA.size(); j++)
+		  {
+			  if(mA[i][j].size() != temp_int){
+				  std::cout << "Error: the depth lines of the first matrix have NOT constant size!" << std::endl;
+				  goto return_0;
+			  }
+		  }
+	  }
+	  temp_int = mB[0].size();
+	  for(int i = 0; i < mB.size(); i++)
+	  {
+		  if(mB[i].size() != temp_int){
+			  std::cout << "Error: the raws of the second matrix have NOT constant size!" << std::endl;
+			  goto return_0;
+		  }
+	  }
+	  temp_int = mB[0][0].size();
+	  for(int i = 0; i < mB.size(); i++)
+	  {
+		  for(int j = 0; j < mB.size(); j++)
+		  {
+			  if(mB[i][j].size() != temp_int){
+				  std::cout << "Error: the depth lines of the second matrix have NOT constant size!" << std::endl;
+				  goto return_0;
+			  }
+		  }
+	  }
+	  //proper dimensions check
+	  if(mA.size() != mB.size() || mA[0].size() != mB[0].size() || mA[0][0].size() != mB[0][0].size())
+	  {
+		  std::cout << "Error: the function is trying to make the sum of matrixes having the following dimensions:" << std::endl;
+		  std::cout << mA.size() << " x " << mA[0].size() << " x " << mA[0][0].size() << "  and  " << mB.size() << " x " << mB[0].size() << " x " << mB[0][0].size() << std::endl;
+		  goto return_0;
+	  }
+
+	  //main program
+	  for(int i = 0; i < mA.size(); i++)
+	  {
+		  for(int j = 0; j < mA[0].size(); j++)
+		  {
+			  for(int z = 0; z < mA[0][0].size(); z++)
+			  {
+				  mRes[i][j][z] = mA[i][j][z] + mB[i][j][z];
+			  }
+		  }
+	  }
+
+	  return true;
+
+	  //exit return in case something is not correct
+	  return_0:
+	  return false;
+  }
+
+  bool matrix3DSUBTRACTION(std::vector<std::vector <std::vector<double> > > mA, std::vector<std::vector <std::vector<double> > > mB, std::vector<std::vector <std::vector<double> > > &mRes)
+  {
+	  int temp_int;
+	  mRes.clear();
+
+	  //function check
+	  //matrix size check
+	  temp_int = mA[0].size();
+	  for(int i = 0; i < mA.size(); i++)
+	  {
+		  if(mA[i].size() != temp_int){
+			  std::cout << "Error: the raws of the first matrix have NOT constant size!" << std::endl;
+			  goto return_0;
+		  }
+	  }
+	  temp_int = mA[0][0].size();
+	  for(int i = 0; i < mA.size(); i++)
+	  {
+		  for(int j = 0; j < mA.size(); j++)
+		  {
+			  if(mA[i][j].size() != temp_int){
+				  std::cout << "Error: the depth lines of the first matrix have NOT constant size!" << std::endl;
+				  goto return_0;
+			  }
+		  }
+	  }
+	  temp_int = mB[0].size();
+	  for(int i = 0; i < mB.size(); i++)
+	  {
+		  if(mB[i].size() != temp_int){
+			  std::cout << "Error: the raws of the second matrix have NOT constant size!" << std::endl;
+			  goto return_0;
+		  }
+	  }
+	  temp_int = mB[0][0].size();
+	  for(int i = 0; i < mB.size(); i++)
+	  {
+		  for(int j = 0; j < mB.size(); j++)
+		  {
+			  if(mB[i][j].size() != temp_int){
+				  std::cout << "Error: the depth lines of the second matrix have NOT constant size!" << std::endl;
+				  goto return_0;
+			  }
+		  }
+	  }
+	  //proper dimensions check
+	  if(mA.size() != mB.size() || mA[0].size() != mB[0].size() || mA[0][0].size() != mB[0][0].size())
+	  {
+		  std::cout << "Error: the function is trying to make the subtraction of matrixes having the following dimensions:" << std::endl;
+		  std::cout << mA.size() << " x " << mA[0].size() << " x " << mA[0][0].size() << "  and  " << mB.size() << " x " << mB[0].size() << " x " << mB[0][0].size() << std::endl;
+		  goto return_0;
+	  }
+
+	  //main program
+	  for(int i = 0; i < mA.size(); i++)
+	  {
+		  for(int j = 0; j < mA[0].size(); j++)
+		  {
+			  for(int z = 0; z < mA[0][0].size(); z++)
+			  {
+				  mRes[i][j][z] = mA[i][j][z] - mB[i][j][z];
+			  }
+		  }
+	  }
+
+	  return true;
+
+	  //exit return in case something is not correct
+	  return_0:
+	  return false;
+  }
+
+  bool matrix2Dprod(std::vector <std::vector<double> > mA, std::vector <std::vector<double> > mB, std::vector <std::vector<double> > &mProd)
+  {
+	  int temp_int;
+	  double temp_double;
+	  mProd.clear();
+
+	  //function check
+	  //matrix size check
+	  temp_int = mA[0].size();
+	  for(int i = 0; i < mA.size(); i++)
+	  {
+		  if(mA[i].size() != temp_int){
+			  std::cout << "Error: the raws of the first matrix have NOT constant size!" << std::endl;
+			  goto return_0;
+		  }
+	  }
+	  temp_int = mB[0].size();
+	  for(int i = 0; i < mB.size(); i++)
+	  {
+		  if(mB[i].size() != temp_int){
+			  std::cout << "Error: the raws of the second matrix have NOT constant size!" << std::endl;
+			  goto return_0;
+		  }
+	  }
+	  //proper dimensions check
+	  if(mA[0].size() != mB.size())
+	  {
+		  std::cout << "Error: the function is trying to make the product of matrixes having the following dimensions:" << std::endl;
+		  std::cout << mA.size() << " x " << mA[0].size() << "  and  " << mB.size() << " x " << mB[0].size() << std::endl;
+		  goto return_0;
+	  }
+
+	  //output definition
+	  mProd.resize(mA.size());
+	  for(int i = 0; i < mA.size(); i++)
+	  {
+		  mProd[i].resize(mB[0].size());
+	  }
+
+	  //main program
+	  for(int j = 0; j < mB[0].size(); j++)
+	  {
+		  for(int i = 0; i < mA.size(); i++)
+		  {
+			  temp_double = 0.0;
+			  for(int z = 0; z < mB.size(); z++)
+			  {
+				  temp_double += mA[i][z]*mB[z][j];
+			  }
+			  mProd[i][j] = temp_double;
+		  }
+  	  }
+
+	  return true;
+
+	  //exit return in case something is not correct
+	  return_0:
+	  return false;
+  }
+
   geometry_msgs::Vector3 makeVector3(double x, double y, double z)
   {
 	  geometry_msgs::Vector3 vector;
@@ -143,6 +441,7 @@ namespace moveit_side_functions
 		  }
 	  }
 
+	  /*
 	  // pre-definition
 	  double c1 = cos(v[2]/2);
 	  double c2 = cos(v[1]/2);
@@ -155,8 +454,39 @@ namespace moveit_side_functions
 	  Quat.x = s1*s2*c3 + c1*c2*s3;
 	  Quat.y = c1*s2*c3 - s1*c2*s3;
 	  Quat.z = s1*c2*c3 + c1*s2*s3;
+      */
+
+	  tf::Quaternion t;
+	  t.setRPY(v[0], v[1], v[2]);
+
+	  Quat.w = t.getW();
+	  Quat.x = t.getX();
+	  Quat.y = t.getY();
+	  Quat.z = t.getZ();
 
 	  return Quat;
+  }
+
+  geometry_msgs::Vector3 Quat2RPY(geometry_msgs::Quaternion Quat, bool RPY_rad)
+  {
+	  geometry_msgs::Vector3 RPY2return;
+
+	  KDL::Rotation k;
+	  tf::Quaternion t;
+	  t.setW(Quat.w); t.setX(Quat.x); t.setY(Quat.y); t.setZ(Quat.z);
+
+	  tf::QuaternionTFToKDL(t,k);
+
+	  k.GetRPY(RPY2return.x, RPY2return.y, RPY2return.z);
+
+	  // convert radiant to degree
+	  if (!RPY_rad){
+		  RPY2return.x = rad2deg(RPY2return.x);
+		  RPY2return.y = rad2deg(RPY2return.y);
+		  RPY2return.z = rad2deg(RPY2return.z);
+	  }
+
+	  return RPY2return;
   }
 
   geometry_msgs::Vector3 FrameShift(geometry_msgs::Vector3 Point2newFrame, geometry_msgs::Vector3 NewFramePosition)
@@ -186,6 +516,31 @@ namespace moveit_side_functions
 	  return new_coordinates;
   }
 
+  void vector32posePosition(geometry_msgs::Vector3 vector, geometry_msgs::Pose &pose2update)
+  {
+	  pose2update.position.x = vector.x;
+	  pose2update.position.y = vector.y;
+	  pose2update.position.z = vector.z;
+  }
+  void vector32posePosition(geometry_msgs::Vector3 vector, geometry_msgs::PoseStamped &poseStamped2update)
+  {
+	  poseStamped2update.pose.position.x = vector.x;
+	  poseStamped2update.pose.position.y = vector.y;
+	  poseStamped2update.pose.position.z = vector.z;
+  }
+
+  void posePosition2vector3(geometry_msgs::Pose pose, geometry_msgs::Vector3 &vector2update)
+  {
+	  vector2update.x = pose.position.x;
+	  vector2update.y = pose.position.y;
+	  vector2update.z = pose.position.z;
+  }
+  void posePosition2vector3(geometry_msgs::PoseStamped poseStamped, geometry_msgs::Vector3 &vector2update)
+  {
+	  vector2update.x = poseStamped.pose.position.x;
+	  vector2update.y = poseStamped.pose.position.y;
+	  vector2update.z = poseStamped.pose.position.z;
+  }
 
   geometry_msgs::Pose makePose(geometry_msgs::Quaternion orientation, geometry_msgs::Vector3 XYZ_location)
   {
@@ -219,6 +574,24 @@ namespace moveit_side_functions
 	  return new_pose_s;
   }
 
+  std::vector<geometry_msgs::PoseStamped> Pose2PoseStamped( std::vector<geometry_msgs::Pose> old_pose)
+  {
+	  std::vector<geometry_msgs::PoseStamped> new_pose_s;
+	  new_pose_s.resize(old_pose.size());
+
+	  for(int i = 0; i < old_pose.size(); i++)
+	  {
+		  new_pose_s[i].pose.position.x = old_pose[i].position.x;
+		  new_pose_s[i].pose.position.y = old_pose[i].position.y;
+		  new_pose_s[i].pose.position.z = old_pose[i].position.z;
+		  new_pose_s[i].pose.orientation.w = old_pose[i].orientation.w;
+		  new_pose_s[i].pose.orientation.x = old_pose[i].orientation.x;
+		  new_pose_s[i].pose.orientation.y = old_pose[i].orientation.y;
+		  new_pose_s[i].pose.orientation.z = old_pose[i].orientation.z;
+	  }
+	  return new_pose_s;
+  }
+
   geometry_msgs::Pose PoseStamped2Pose( geometry_msgs::PoseStamped old_pose_s)
   {
 	  geometry_msgs::Pose new_pose;
@@ -230,6 +603,24 @@ namespace moveit_side_functions
 	  new_pose.orientation.y = old_pose_s.pose.orientation.y;
 	  new_pose.orientation.z = old_pose_s.pose.orientation.z;
 
+	  return new_pose;
+  }
+
+  std::vector<geometry_msgs::Pose> PoseStamped2Pose( std::vector<geometry_msgs::PoseStamped> old_pose_s)
+  {
+	  std::vector<geometry_msgs::Pose> new_pose;
+	  new_pose.resize(old_pose_s.size());
+
+	  for(int i = 0; i < old_pose_s.size(); i++)
+	  {
+		  new_pose[i].position.x = old_pose_s[i].pose.position.x;
+		  new_pose[i].position.y = old_pose_s[i].pose.position.y;
+		  new_pose[i].position.z = old_pose_s[i].pose.position.z;
+		  new_pose[i].orientation.w = old_pose_s[i].pose.orientation.w;
+		  new_pose[i].orientation.x = old_pose_s[i].pose.orientation.x;
+		  new_pose[i].orientation.y = old_pose_s[i].pose.orientation.y;
+		  new_pose[i].orientation.z = old_pose_s[i].pose.orientation.z;
+	  }
 	  return new_pose;
   }
 
@@ -376,55 +767,348 @@ namespace moveit_side_functions
 // End namespace "moveit_side_functions"
 }
 
+namespace geometry_side_functions
+{
+  geometry_msgs::Vector3 vertical_orientation_x(void)
+  {
+		geometry_msgs::Vector3 RPY_up;
+		RPY_up.x = 180.0; RPY_up.y = 0.0; RPY_up.z = 0.0;
+		return RPY_up;
+  }
+
+  geometry_msgs::Vector3 vertical_orientation_y(void)
+  {
+		geometry_msgs::Vector3 RPY_up;
+		RPY_up.x = 0.0; RPY_up.y = 180.0; RPY_up.z = 0.0;
+		return RPY_up;
+  }
+
+  geometry_msgs::Pose up_position(geometry_msgs::Pose ee_curr_pos, double curr_z, double distance)
+  {
+		namespace msf = moveit_side_functions;
+
+		// ee_target position definition
+		geometry_msgs::Pose ee_target;
+		ee_target = ee_curr_pos;
+		ee_target.position.z += distance;
+
+		// ee_target orientation definition
+		// definition of the two possible final orientation
+		geometry_msgs::Vector3 RPY_up_x = vertical_orientation_x();
+		geometry_msgs::Vector3 RPY_up_y = vertical_orientation_y();
+		RPY_up_x.z = curr_z;
+		RPY_up_y.z = curr_z;
+		geometry_msgs::Quaternion Quat_up_x = msf::RPY2Quat(RPY_up_x);
+		geometry_msgs::Quaternion Quat_up_y = msf::RPY2Quat(RPY_up_y);
+		// definition or the current orientation
+		geometry_msgs::Quaternion ee_curr_or = ee_curr_pos.orientation;
+
+		if (msf::Quat_diff(ee_curr_or, Quat_up_x) >= msf::Quat_diff(ee_curr_or, Quat_up_y)){
+			ee_target.orientation = Quat_up_y;
+		}else{
+			ee_target.orientation = Quat_up_x;
+		}
+
+		return ee_target;
+  }
+
+  std::vector <std::vector <double> > point2matrix_gen(geometry_msgs::Vector3 point)
+    {
+  	  //initialization
+  	  std::vector <std::vector <double> > matrixP; matrixP.resize(4);
+  	  std::vector <double> temp_line; temp_line.resize(1);
+  	  for(int i = 0; i < matrixP.size(); i++)
+  		  matrixP[i] = temp_line;
+
+  	  //main prog
+  	  matrixP[0][0] = point.x;
+  	  matrixP[1][0] = point.y;
+  	  matrixP[2][0] = point.z;
+  	  matrixP[3][0] = 1.0;
+
+  	  return matrixP;
+    }
+
+  geometry_msgs::Vector3 matrix2point_gen(std::vector <std::vector <double> > matrix)
+    {
+	  geometry_msgs::Vector3 point;
+
+  	  //initialization check
+	  if(matrix.size() != 4)
+	  {
+		  std::cout << "Error: the number of raws are supposed to be 4!" << std::endl;
+		  std::cout << "A default null vector has been returned..." << std::endl;
+		  return point;
+	  }
+	  for(int i = 0; i < 4; i++)
+	  {
+		  if(matrix[i].size() != 1)
+		  {
+			  std::cout << "Error: the raw number " << i << " is supposed to be composed by just 1 element!" << std::endl;
+			  std::cout << "A default null vector has been returned..." << std::endl;
+			  return point;
+		  }
+	  }
+	  if(matrix[3][0] != 1.0)
+	  {
+		  std::cout << "Error: the last element is supposed to be equal to 1.0!" << std::endl;
+		  std::cout << "A default null vector has been returned..." << std::endl;
+		  return point;
+	  }
+
+  	  //main prog
+  	  point.x = matrix[0][0];
+  	  point.y = matrix[1][0];
+  	  point.z = matrix[2][0];
+
+  	  return point;
+    }
+
+  std::vector <std::vector <double> > translation_matrix(geometry_msgs::Vector3 translation)
+  {
+	  //initialization
+	  std::vector <std::vector <double> > matrixT; matrixT.resize(4);
+	  std::vector <double> temp_line; temp_line.resize(4);
+	  for(int i = 0; i < matrixT.size(); i++)
+		  matrixT[i] = temp_line;
+
+	  //main prog
+	  matrixT[0][0] = 1.0;
+	  matrixT[1][1] = 1.0;
+	  matrixT[2][2] = 1.0;
+	  matrixT[3][3] = 1.0;
+	  matrixT[0][3] = translation.x;
+	  matrixT[1][3] = translation.y;
+	  matrixT[2][3] = translation.z;
+
+	  return matrixT;
+  }
+
+  std::vector <std::vector <double> > rotational_matrix_X(double angle_X, bool rad)
+  {
+	  //initialization
+	  std::vector <std::vector <double> > matrixX; matrixX.resize(4);
+	  std::vector <double> temp_line; temp_line.resize(4);
+	  for(int i = 0; i < matrixX.size(); i++)
+		  matrixX[i] = temp_line;
+
+	  //conversion to radiant (if needed)
+	  if(!rad)
+		  angle_X = moveit_side_functions::deg2rad(angle_X);
+
+	  //main prog
+	  matrixX[0][0] = 1.0;
+	  matrixX[3][3] = 1.0;
+	  matrixX[1][1] = cos(angle_X);
+	  matrixX[2][2] = cos(angle_X);
+	  matrixX[1][2] = -sin(angle_X);
+	  matrixX[2][1] = sin(angle_X);
+
+	  return matrixX;
+  }
+
+  std::vector <std::vector <double> > rotational_matrix_Y(double angle_Y, bool rad)
+  {
+	  //initialization
+	  std::vector <std::vector <double> > matrixY; matrixY.resize(4);
+	  std::vector <double> temp_line; temp_line.resize(4);
+	  for(int i = 0; i < matrixY.size(); i++)
+		  matrixY[i] = temp_line;
+
+	  //conversion to radiant (if needed)
+	  if(!rad)
+		  angle_Y = moveit_side_functions::deg2rad(angle_Y);
+
+	  //main prog
+	  matrixY[1][1] = 1.0;
+	  matrixY[3][3] = 1.0;
+	  matrixY[0][0] = cos(angle_Y);
+	  matrixY[2][2] = cos(angle_Y);
+	  matrixY[0][2] = sin(angle_Y);
+	  matrixY[2][0] = -sin(angle_Y);
+
+	  return matrixY;
+  }
+
+  std::vector <std::vector <double> > rotational_matrix_Z(double angle_Z, bool rad)
+  {
+	  //initialization
+	  std::vector <std::vector <double> > matrixZ; matrixZ.resize(4);
+	  std::vector <double> temp_line; temp_line.resize(4);
+	  for(int i = 0; i < matrixZ.size(); i++)
+		  matrixZ[i] = temp_line;
+
+	  //conversion to radiant (if needed)
+	  if(!rad)
+		  angle_Z = moveit_side_functions::deg2rad(angle_Z);
+
+	  //main prog
+	  matrixZ[2][2] = 1.0;
+	  matrixZ[3][3] = 1.0;
+	  matrixZ[0][0] = cos(angle_Z);
+	  matrixZ[1][1] = cos(angle_Z);
+	  matrixZ[0][1] = -sin(angle_Z);
+	  matrixZ[1][0] = sin(angle_Z);
+
+	  return matrixZ;
+  }
+
+  std::vector <std::vector <double> > RPY2rotMatrix(geometry_msgs::Vector3 angles, bool rad)
+  {
+	  //initialization
+	  std::vector <std::vector <double> > matrixR; matrixR.resize(4);
+	  std::vector <double> temp_line; temp_line.resize(4);
+	  for(int i = 0; i <  matrixR.size(); i++)
+		  matrixR[i] = temp_line;
+
+	  //conversion to radiant (if needed)
+	  if(!rad)
+	  {
+		  angles.x = moveit_side_functions::deg2rad(angles.x);
+		  angles.y = moveit_side_functions::deg2rad(angles.y);
+		  angles.z = moveit_side_functions::deg2rad(angles.z);
+	  }
+
+	  //main prog
+	  std::vector <std::vector <double> > matrixX = rotational_matrix_X(angles.x);
+	  std::vector <std::vector <double> > matrixY = rotational_matrix_Y(angles.y);
+	  std::vector <std::vector <double> > matrixZ = rotational_matrix_Z(angles.z);
+
+	  moveit_side_functions::matrix2Dprod(matrixZ,matrixY,matrixR);
+	  moveit_side_functions::matrix2Dprod(matrixR,matrixX,matrixR);
+
+	  return matrixR;
+  }
+  std::vector <std::vector <double> > Quaternion2rotMatrix(geometry_msgs::Quaternion quat)
+  {
+	  //initialization
+	  std::vector <std::vector <double> > matrixR; matrixR.resize(4);
+	  std::vector <double> temp_line; temp_line.resize(4);
+	  for(int i = 0; i < matrixR.size(); i++)
+		  matrixR[i] = temp_line;
+
+	  geometry_msgs::Vector3 angles = moveit_side_functions::Quat2RPY(quat);
+
+	  //main prog
+	  std::vector <std::vector <double> > matrixX = rotational_matrix_X(angles.x);
+	  std::vector <std::vector <double> > matrixY = rotational_matrix_Y(angles.y);
+	  std::vector <std::vector <double> > matrixZ = rotational_matrix_Z(angles.z);
+
+	  moveit_side_functions::matrix2Dprod(matrixZ,matrixY,matrixR);
+	  moveit_side_functions::matrix2Dprod(matrixR,matrixX,matrixR);
+
+	  return matrixR;
+  }
+
+  geometry_msgs::Vector3 rotMatrix2RPY( std::vector <std::vector <double> > matrix, bool rad)
+  {
+	  namespace msf = moveit_side_functions;
+	  geometry_msgs::Vector3 rot_vector;
+
+  	  //initialization check
+	  if(matrix.size() != 4)
+	  {
+		  std::cout << "Error: the number of raws are supposed to be 4!" << std::endl;
+		  std::cout << "A default null vector has been returned..." << std::endl;
+		  return rot_vector;
+	  }
+	  for(int i = 0; i < 4; i++)
+	  {
+		  if(matrix[i].size() != 4)
+		  {
+			  std::cout << "Error: the raw number " << i << " is supposed to be composed by just 1 element!" << std::endl;
+			  std::cout << "A default null vector has been returned..." << std::endl;
+			  return rot_vector;
+		  }
+	  }
+	  if(matrix[3][3] != 1.0)
+	  {
+		  std::cout << "Error: the last element is supposed to be equal to 1.0!" << std::endl;
+		  std::cout << "A default null vector has been returned..." << std::endl;
+		  return rot_vector;
+	  }
+	  for(int i = 0; i < 3; i++)
+	  {
+		  if(matrix[3][i] != 0.0 || matrix[i][3] != 0.0)
+		  {
+			  std::cout << "Error: the values contained in the cells [" << i << ",3] and [3," << i << "] is supposed to be ZERO!" << std::endl;
+			  std::cout << "A default null vector has been returned..." << std::endl;
+			  return rot_vector;
+		  }
+	  }
+
+  	  //main prog
+	  rot_vector.x = atan2(matrix[2][1], matrix[2][2]);
+	  rot_vector.y = atan2(-matrix[2][0], sqrt((matrix[2][1]*matrix[2][1]) + (matrix[2][2]*matrix[2][2])));
+	  rot_vector.z = atan2(matrix[1][0], matrix[0][0]);
+
+	  //conversion to radiant (if needed)
+	  if(!rad)
+	  {
+		  rot_vector.x = msf::rad2deg(rot_vector.x);
+		  rot_vector.y = msf::rad2deg(rot_vector.y);
+		  rot_vector.z = msf::rad2deg(rot_vector.z);
+	  }
+
+  	  return rot_vector;
+  }
+
+  geometry_msgs::Quaternion rotMatrix2Quaternion(std::vector<std::vector <double> > matrix)
+  {
+	  geometry_msgs::Vector3 rot_vector;
+	  geometry_msgs::Quaternion quat_vec;
+
+  	  //initialization check
+	  if(matrix.size() != 4)
+	  {
+		  std::cout << "Error: the number of raws are supposed to be 4!" << std::endl;
+		  std::cout << "A default null vector has been returned..." << std::endl;
+		  return quat_vec;
+	  }
+	  for(int i = 0; i < 4; i++)
+	  {
+		  if(matrix[i].size() != 4)
+		  {
+			  std::cout << "Error: the raw number " << i << " is supposed to be composed by just 1 element!" << std::endl;
+			  std::cout << "A default null vector has been returned..." << std::endl;
+			  return quat_vec;
+		  }
+	  }
+	  if(matrix[3][3] != 1.0)
+	  {
+		  std::cout << "Error: the last element is supposed to be equal to 1.0!" << std::endl;
+		  std::cout << "A default null vector has been returned..." << std::endl;
+		  return quat_vec;
+	  }
+	  for(int i = 0; i < 3; i++)
+	  {
+		  if(matrix[3][i] != 0.0 || matrix[i][3] != 0.0)
+		  {
+			  std::cout << "Error: the values contained in the cells [" << i <<",3] and [3," << i << "] is supposed to be ZERO!" << std::endl;
+			  std::cout << "A default null vector has been returned..." << std::endl;
+			  return quat_vec;
+		  }
+	  }
+
+  	  //main prog
+	  rot_vector.x = atan2(matrix[2][1], matrix[2][2]);
+	  rot_vector.y = atan2(-matrix[2][0], sqrt((matrix[2][1]*matrix[2][1]) + (matrix[2][2]*matrix[2][2])));
+	  rot_vector.z = atan2(matrix[1][0], matrix[0][0]);
+
+	  //conversion to quaternions
+	  quat_vec = moveit_side_functions::RPY2Quat(rot_vector);
+
+	  return quat_vec;
+  }
+
+// End namespace "geometry_side_functions"
+}
 
 namespace moveit_basics_functions
 {
   //Global variable for this namespace
   baxter_core_msgs::EndpointState gl_end_point_state;
   sensor_msgs::JointState gl_joints_state;
-
-  geometry_msgs::Vector3 vertical_orientation_x(void)
-  {
-	  geometry_msgs::Vector3 RPY_up;
-   	  RPY_up.x = 180.0; RPY_up.y = 0.0; RPY_up.z = 0.0;
-      return RPY_up;
-  }
-
-  geometry_msgs::Vector3 vertical_orientation_y(void)
-  {
-	  geometry_msgs::Vector3 RPY_up;
-   	  RPY_up.x = 0.0; RPY_up.y = 180.0; RPY_up.z = 0.0;
-      return RPY_up;
-  }
-
-  geometry_msgs::Pose up_position(geometry_msgs::Pose ee_curr_pos, double curr_z, double distance)
-  {
-	  namespace msf = moveit_side_functions;
-
-	  // ee_target position definition
-	  geometry_msgs::Pose ee_target;
-	  ee_target = ee_curr_pos;
-	  ee_target.position.z += distance;
-
-      // ee_target orientation definition
-	  // definition of the two possible final orientation
-	  geometry_msgs::Vector3 RPY_up_x = vertical_orientation_x();
-	  geometry_msgs::Vector3 RPY_up_y = vertical_orientation_y();
-	  RPY_up_x.z = curr_z;
-	  RPY_up_y.z = curr_z;
-	  geometry_msgs::Quaternion Quat_up_x = msf::RPY2Quat(RPY_up_x);
-	  geometry_msgs::Quaternion Quat_up_y = msf::RPY2Quat(RPY_up_y);
-      // definition or the current orientation
-	  geometry_msgs::Quaternion ee_curr_or = ee_curr_pos.orientation;
-
-	  if (msf::Quat_diff(ee_curr_or, Quat_up_x) >= msf::Quat_diff(ee_curr_or, Quat_up_y)){
-		  ee_target.orientation = Quat_up_y;
-	  }else{
-		  ee_target.orientation = Quat_up_x;
-	  }
-
-	  return ee_target;
-  }
 
   moveit_msgs::OrientationConstraint orient_constr_definition(geometry_msgs::Quaternion orientation, std::string link_name, float toll_x, float toll_y, float toll_z, float weight, std::string header_frame_id)
   {
@@ -593,7 +1277,9 @@ namespace moveit_basics_functions
   	  //solid pose definition
   	  geometry_msgs::Pose solid_pose;
   	  //the orientation is not important
+
   	  solid_pose.orientation = moveit_side_functions::RPY2Quat(orientation, false);
+
   	  solid_pose.position.x = position.x; solid_pose.position.y = position.y; solid_pose.position.z = position.z;
 
   	  collision_object.primitives.push_back(output_solid);
@@ -635,33 +1321,94 @@ namespace moveit_basics_functions
   	  return collision_object;
    }
 
-  //Collision object generator: BOX -- Using RPY in degree position defined in the centre of the base
+  //Collision object generator: BOX -- Using RPY in degree and position defined in the center of the base
   moveit_msgs::CollisionObject collision_obj_generator_z(std::string id_collision_obj, geometry_msgs::Vector3 positionCentreBase, geometry_msgs::Vector3 orientation, geometry_msgs::Vector3 dimension, std::string solid_type, std::string header_frame_id)
   {
 	  namespace msf = moveit_side_functions;
+	  namespace gsf = geometry_side_functions;
 
-	  geometry_msgs::Vector3 z_moveit_position = positionCentreBase;
+	  geometry_msgs::Vector3 z_moveit_position;
 
-	  z_moveit_position.x += + dimension.z/2 * sin(msf::deg2rad(orientation.y));
-	  z_moveit_position.y += - dimension.z/2 * sin(msf::deg2rad(orientation.x));
-	  z_moveit_position.z += + dimension.z/2 * cos(msf::deg2rad(orientation.x)) * cos(msf::deg2rad(orientation.y));
+	  std::vector <std::vector <double> > temp_matrix;
+	  std::vector <std::vector <double> > rot_matrix = gsf::RPY2rotMatrix(orientation);
+	  std::vector <std::vector <double> > trans_matrix = gsf::translation_matrix(positionCentreBase);
+	  std::vector <std::vector <double> > point_matrix = gsf::point2matrix_gen(msf::makeVector3(0.0, 0.0, dimension.z/2));
+
+	  msf::matrix2Dprod(trans_matrix, rot_matrix, temp_matrix);
+	  msf::matrix2Dprod(temp_matrix, point_matrix, temp_matrix);
+
+	  z_moveit_position = gsf::matrix2point_gen(temp_matrix);
 
 	  moveit_msgs::CollisionObject collision_object = collision_obj_generator(id_collision_obj, z_moveit_position, orientation, dimension, solid_type, header_frame_id);
 
    	  return collision_object;
   }
-  //Collision object generator: CYLINDER or CONE -- Using RPY in degree position defined in the centre of the base
+  //Collision object generator: BOX -- Using quaternion and position defined in the center of the base
+  moveit_msgs::CollisionObject collision_obj_generator_z(std::string id_collision_obj, geometry_msgs::Vector3 positionCentreBase, geometry_msgs::Quaternion quat, geometry_msgs::Vector3 dimension, std::string solid_type, std::string header_frame_id)
+  {
+	  namespace msf = moveit_side_functions;
+	  namespace gsf = geometry_side_functions;
+
+	  geometry_msgs::Vector3 orientation = msf::Quat2RPY(quat);
+	  geometry_msgs::Vector3 z_moveit_position;
+
+	  std::vector <std::vector <double> > temp_matrix;
+	  std::vector <std::vector <double> > rot_matrix = gsf::RPY2rotMatrix(orientation);
+	  std::vector <std::vector <double> > trans_matrix = gsf::translation_matrix(positionCentreBase);
+	  std::vector <std::vector <double> > point_matrix = gsf::point2matrix_gen(msf::makeVector3(0.0, 0.0, dimension.z/2));
+
+	  msf::matrix2Dprod(trans_matrix, rot_matrix, temp_matrix);
+	  msf::matrix2Dprod(temp_matrix, point_matrix, temp_matrix);
+
+	  z_moveit_position = gsf::matrix2point_gen(temp_matrix);
+
+	  moveit_msgs::CollisionObject collision_object = collision_obj_generator(id_collision_obj, z_moveit_position, quat, dimension, solid_type, header_frame_id);
+
+   	  return collision_object;
+  }
+
+  //Collision object generator: CYLINDER or CONE -- Using RPY in degree and position defined in the center of the base
   moveit_msgs::CollisionObject collision_obj_generator_z(std::string id_collision_obj, geometry_msgs::Vector3 positionCentreBase, geometry_msgs::Vector3 orientation, double height, double radius, std::string solid_type, std::string header_frame_id)
   {
 	  namespace msf = moveit_side_functions;
+	  namespace gsf = geometry_side_functions;
 
-	  geometry_msgs::Vector3 z_moveit_position = positionCentreBase;
+	  geometry_msgs::Vector3 z_moveit_position;
 
-	  z_moveit_position.x += + height/2 * sin(msf::deg2rad(orientation.y));
-	  z_moveit_position.y += - height/2 * sin(msf::deg2rad(orientation.x));
-	  z_moveit_position.z += + height/2 * cos(msf::deg2rad(orientation.x)) * cos(msf::deg2rad(orientation.y));
+	  std::vector <std::vector <double> > temp_matrix;
+	  std::vector <std::vector <double> > rot_matrix = gsf::RPY2rotMatrix(orientation);
+	  std::vector <std::vector <double> > trans_matrix = gsf::translation_matrix(positionCentreBase);
+	  std::vector <std::vector <double> > point_matrix = gsf::point2matrix_gen(msf::makeVector3(0.0, 0.0, height/2));
+
+	  msf::matrix2Dprod(trans_matrix, rot_matrix, temp_matrix);
+	  msf::matrix2Dprod(temp_matrix, point_matrix, temp_matrix);
+
+	  z_moveit_position = gsf::matrix2point_gen(temp_matrix);
 
 	  moveit_msgs::CollisionObject collision_object = collision_obj_generator(id_collision_obj, z_moveit_position, orientation, height, radius, solid_type, header_frame_id);
+
+   	  return collision_object;
+  }
+  //Collision object generator: CYLINDER or CONE -- Using quaternion and position defined in the center of the base
+  moveit_msgs::CollisionObject collision_obj_generator_z(std::string id_collision_obj, geometry_msgs::Vector3 positionCentreBase, geometry_msgs::Quaternion quat, double height, double radius, std::string solid_type, std::string header_frame_id)
+  {
+	  namespace msf = moveit_side_functions;
+	  namespace gsf = geometry_side_functions;
+
+	  geometry_msgs::Vector3 orientation = msf::Quat2RPY(quat);
+	  geometry_msgs::Vector3 z_moveit_position;
+
+	  std::vector <std::vector <double> > temp_matrix;
+	  std::vector <std::vector <double> > rot_matrix = gsf::RPY2rotMatrix(orientation);
+	  std::vector <std::vector <double> > trans_matrix = gsf::translation_matrix(positionCentreBase);
+	  std::vector <std::vector <double> > point_matrix = gsf::point2matrix_gen(msf::makeVector3(0.0, 0.0, height/2));
+
+	  msf::matrix2Dprod(trans_matrix, rot_matrix, temp_matrix);
+	  msf::matrix2Dprod(temp_matrix, point_matrix, temp_matrix);
+
+	  z_moveit_position = gsf::matrix2point_gen(temp_matrix);
+
+	  moveit_msgs::CollisionObject collision_object = collision_obj_generator(id_collision_obj, z_moveit_position, quat, height, radius, solid_type, header_frame_id);
 
    	  return collision_object;
   }
@@ -712,7 +1459,6 @@ namespace moveit_basics_functions
 	  box_vector.push_back(side4);
 
 	  return box_vector;
-
   }
 
   std::vector<moveit_msgs::CollisionObject> readCollisionObj(std::string file_directory)
@@ -844,10 +1590,61 @@ namespace moveit_basics_functions
 	  return obj_set;
   }
 
+  std::vector<geometry_msgs::PoseStamped> TF_arm_point_pose(std::string right_left)
+  {
+	  namespace msf = moveit_side_functions;
+
+	  tf::TransformListener listener(ros::Duration(10));
+	  std::vector<geometry_msgs::PoseStamped> point_poses;
+	  geometry_msgs::PoseStamped temp_pose_father;
+	  geometry_msgs::PoseStamped temp_pose_child;
+	  std::string temp_str;
+	  bool done;
+
+	  //torso initialization
+	  temp_pose_father.header.frame_id = tf_tree_starter_name;
+	  temp_pose_father.header.stamp = ros::Time();
+	  temp_pose_father.pose.orientation = msf::RPY2Quat(msf::makeVector3(0.0, 0.0, 0.0));
+
+	  if(right_left != right_def && right_left != left_def){
+		  std::cout << "Warning: insert correctly from which arm you want to get the current joint values.";
+		  std::cout << "Insert '" << right_def << "' or '" << left_def << "', otherwise this function will return an empty message by default." << std::endl;
+	  }else{
+		  std::vector<std::string> l_n = link_names();
+		  point_poses.resize(l_n.size());
+
+		  for(int i = 0; i < l_n.size(); i++)
+		  {
+			  temp_str = tf_tree_starter_name;
+			  temp_pose_father.header.frame_id = right_left + l_n[i];
+
+			  done = false;
+			  while(!done)
+			  {
+				  try{
+					  listener.transformPose(temp_str, temp_pose_father, temp_pose_child);
+					  //std::cout << temp_pose_father.header.frame_id << " --> " << temp_str << " | " << temp_pose_child.header.frame_id << std::endl;
+					  temp_pose_child.header.frame_id =temp_pose_father.header.frame_id;
+					  point_poses[i] = temp_pose_child;
+					  //preparation for the next iteration
+					  temp_pose_father.header.stamp = ros::Time();
+
+					  done = true;
+
+				  }catch(tf::TransformException& ex){
+					 //std::cout << "Received an exception trying to transform poses from frame " << temp_pose_father.header.frame_id << " to frame " << temp_str <<": " << ex.what() << std::endl;
+				  }
+			  }
+		  }
+	  }
+
+	  return point_poses;
+  }
+
   //Callback for the end-effector endpoint state (position, twist, wrench) | global variable
   void callback_Ee(const baxter_core_msgs::EndpointState data){
 	  gl_end_point_state = data;
-	  //to check if the callback function is running uncomment th following line
+	  //to check if the callback function is running uncomment the following line
 	  //std::cout << "XYZ.x: " << data.pose.position.x << std::endl;
   }
   baxter_core_msgs::EndpointState getEndPointStateFromTopic(std::string right_left, ros::NodeHandle &nh)
@@ -862,8 +1659,8 @@ namespace moveit_basics_functions
 			  //initialization of the exit param
 			  ros::Subscriber sub = nh.subscribe <baxter_core_msgs::EndpointState>(topic_str, 10, callback_Ee);
 			  double curr_time = 0.0; double step_time = std_time;
-			  //do not proceed until the topic is not read correctly or the maximum time expired "#define exit_finction_time"
-			  while (eps2return.pose.position.x == 0.0 && eps2return.pose.position.y == 0.0 && curr_time < exit_finction_time)
+			  //do not proceed until the topic is not read correctly or the maximum time expired "#define exit_function_time"
+			  while (eps2return.pose.position.x == 0.0 && eps2return.pose.position.y == 0.0 && curr_time < exit_function_time)
 			  {
 				  eps2return = gl_end_point_state;
 				  //the robot cannot be in the position (0.0,0.0,z) cuz it is inside the body
@@ -917,9 +1714,9 @@ namespace moveit_basics_functions
 			  //initialization of the exit param
 			  double curr_time = 0.0; double step_time = std_time;
 			  double control_param = 3000.0; joints_val2return.position.push_back(control_param);
-			  //do not proceed until the topic is not read correctly or the maximum time expired "#define exit_finction_time"
+			  //do not proceed until the topic is not read correctly or the maximum time expired "#define exit_function_time"
 			  ros::Subscriber sub = nh.subscribe(topic_str, 10, callback_Joint);
-			  while (joints_val2return.position[0] == control_param && curr_time < exit_finction_time)
+			  while (joints_val2return.position[0] == control_param && curr_time < exit_function_time)
 			  {
 				  joints_val2return = gl_joints_state;
 				  curr_time += step_time;
@@ -1053,8 +1850,6 @@ namespace moveit_basics_functions
 
 	  return joints_val2return;
   }
-
-
 
 // End namespace "moveit_basics_functions"
 }
@@ -1589,6 +2384,21 @@ namespace obj_functions
   	  return true;
   }
 
+  std::vector<moveit_msgs::CollisionObject> GetMoveitSceneObjects(moveit::planning_interface::PlanningSceneInterface &interface)
+  {
+	  std::vector<moveit_msgs::CollisionObject> obj_list;
+	  std::vector<std::string> obj_id = interface.getKnownObjectNames();
+	  std::map<std::string, moveit_msgs::CollisionObject > objpres = interface.getObjects();
+
+	  for(int i = 0; i < obj_id.size(); i++)
+	  {
+		  obj_list.push_back(objpres[obj_id[i]]);
+	  }
+
+	  return obj_list;
+  }
+
+
   /* MOVEIT MISSING FUNCTION ABOUT addObject
    * Might happen that the functions 'addObject' do not compile.
    * Probably it happens bacause your version of Moveit! does not have the following function:
@@ -1648,7 +2458,6 @@ namespace obj_functions
 
   	  return true;
     }
-
 
   //NO effective check (partial check on the link name)
   bool attachObj2group(moveit::planning_interface::MoveGroup& group, std::string obj_id, std::string link_id,  double time2wait)
@@ -1761,7 +2570,6 @@ namespace obj_functions
       return RPY2return;
     }
     */
-
 
 
 // End namespace "obj_functions"

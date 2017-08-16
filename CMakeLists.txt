@@ -137,6 +137,8 @@ add_library(side_functions src/side_functions.cpp)
 
 ## Declare a C++ executable
 # add_executable(side_functions src/side_functions.cpp)
+add_executable(frame_coord_pub src/frame_coord_pub.cpp)
+target_link_libraries(frame_coord_pub side_functions ${catkin_LIBRARIES} ${Boost_LIBRARIES})
 
 ## Add cmake target dependencies of the executable
 ## same as for the library above
