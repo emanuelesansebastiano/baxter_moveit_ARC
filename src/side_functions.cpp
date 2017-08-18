@@ -14,6 +14,15 @@ namespace moveit_side_functions
 	  return val;
   }
 
+  void countdown_sec(int n_sec)
+  {
+	for(int i = 0; i < n_sec; i++)
+    {
+		std::cout << "countdown: " << n_sec-i -1 << std::endl;
+		ros::Duration(1.0).sleep();
+	}
+  }
+
   void standardSleep(double sleep_time)
   {
 	  ros::Duration(sleep_time).sleep();
@@ -197,7 +206,7 @@ namespace moveit_side_functions
 	  temp_int = mA[0][0].size();
 	  for(int i = 0; i < mA.size(); i++)
 	  {
-		  for(int j = 0; j < mA.size(); j++)
+		  for(int j = 0; j < mA[0].size(); j++)
 		  {
 			  if(mA[i][j].size() != temp_int){
 				  std::cout << "Error: the depth lines of the first matrix have NOT constant size!" << std::endl;
@@ -216,7 +225,7 @@ namespace moveit_side_functions
 	  temp_int = mB[0][0].size();
 	  for(int i = 0; i < mB.size(); i++)
 	  {
-		  for(int j = 0; j < mB.size(); j++)
+		  for(int j = 0; j < mB[0].size(); j++)
 		  {
 			  if(mB[i][j].size() != temp_int){
 				  std::cout << "Error: the depth lines of the second matrix have NOT constant size!" << std::endl;
@@ -269,7 +278,7 @@ namespace moveit_side_functions
 	  temp_int = mA[0][0].size();
 	  for(int i = 0; i < mA.size(); i++)
 	  {
-		  for(int j = 0; j < mA.size(); j++)
+		  for(int j = 0; j < mA[0].size(); j++)
 		  {
 			  if(mA[i][j].size() != temp_int){
 				  std::cout << "Error: the depth lines of the first matrix have NOT constant size!" << std::endl;
@@ -288,7 +297,7 @@ namespace moveit_side_functions
 	  temp_int = mB[0][0].size();
 	  for(int i = 0; i < mB.size(); i++)
 	  {
-		  for(int j = 0; j < mB.size(); j++)
+		  for(int j = 0; j < mB[0].size(); j++)
 		  {
 			  if(mB[i][j].size() != temp_int){
 				  std::cout << "Error: the depth lines of the second matrix have NOT constant size!" << std::endl;

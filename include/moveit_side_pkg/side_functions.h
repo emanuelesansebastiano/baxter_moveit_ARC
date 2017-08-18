@@ -115,6 +115,9 @@ namespace moveit_side_functions
   //brief: Standard attempts for boolean function before exiting (false)
   int _get_attempt_val(int val = stdAttempts4booleanFunc);
 
+  //brief: Function to generate a waiting countdown
+  void countdown_sec(int n_sec = 3);
+
   //brief: Standard sleep time - default value [seconds]
   void standardSleep(double sleep_time = std_time);
 
